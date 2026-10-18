@@ -182,3 +182,17 @@ body:has(.theme-orange) {
 
 .tab-panel:not([hidden]) { animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
 @media (prefers-reduced-motion: reduce) { .tab-panel { animation: none !important; } }
+
+/* How it works: step connectors, scan sweep and card progress. */
+.hiw-conn { --hiw-dir: 180deg; --hiw-collapsed: scaleY(0); }
+@media (min-width: 64rem) { .hiw-conn { --hiw-dir: 90deg; --hiw-collapsed: scaleX(0); } }
+.hiw-dash { background: repeating-linear-gradient(var(--hiw-dir), currentColor 0 6px, transparent 6px 12px); background-size: 100% 24px; border-radius: 999px; }
+@media (min-width: 64rem) { .hiw-dash { background-size: 24px 100%; } }
+.hiw-dash[data-flowing] { animation: hiw-flow-y 0.6s linear infinite; }
+@media (min-width: 64rem) { .hiw-dash[data-flowing] { animation-name: hiw-flow-x; } }
+@keyframes hiw-flow-y { to { background-position: 0 24px; } }
+@keyframes hiw-flow-x { to { background-position: 24px 0; } }
+@keyframes hiw-scan { from { top: -2rem; } to { top: 100%; } }
+.hiw-scan { animation: hiw-scan 1.5s ease-in-out infinite; }
+@keyframes hiw-progress { from { width: 0; } to { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .hiw-dash, .hiw-scan { animation: none !important; } }

@@ -8,28 +8,7 @@ import { PRICING } from "@/lib/config";
 import { SUB_SCORES } from "@/lib/report";
 import { Benchmarks, Evidence, KpiStrip, Pillars, Surfaces } from "@/components/landing/Sections";
 import { VISIBILITY_SUB_SCORES } from "@/lib/visibility";
-
-const STEPS = [
-  {
-    n: "1",
-    color: "bg-accent",
-    title: "Enter your URL",
-    body: "Paste a live URL, or share demo access, a Figma file, screenshots or a screen recording. Credentials are encrypted and deleted after analysis.",
-  },
-  {
-    n: "2",
-    color: "bg-cta",
-    title: "We scan every screen",
-    body: "Every screen is reviewed like a senior UX lead would, and your pages are crawled for SEO and GEO: indexing, AI crawler access, metadata and structured data.",
-  },
-  {
-    n: "3",
-    color: "bg-good",
-    title: "Fix what matters first",
-    body: "Get a Growth Readiness Score, issues pinned to the exact place on screen, and an action plan ranked by impact and effort.",
-  },
-];
-
+import { HowItWorks } from "@/components/landing/HowItWorks";
 
 export default async function Landing() {
   const user = await currentUser();
@@ -79,16 +58,12 @@ export default async function Landing() {
 
         {/* Process */}
         <section id="how" className="mx-auto max-w-6xl px-5 sm:px-6 py-16 sm:py-24 scroll-mt-16">
-          <h2 className="text-center text-3xl md:text-4xl font-bold tracking-tight">How it works</h2>
-          <div className="mt-14 grid md:grid-cols-3 gap-10">
-            {STEPS.map((s, i) => (
-              <Reveal key={s.n} delay={i * 110} className="text-center md:text-left">
-                <span className={`inline-flex h-11 w-11 items-center justify-center rounded-full ${s.color} text-lg font-bold text-white`}>{s.n}</span>
-                <h3 className="mt-5 text-xl font-semibold">{s.title}</h3>
-                <p className="mt-3 text-muted leading-relaxed">{s.body}</p>
-              </Reveal>
-            ))}
+          <div className="text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.14em] text-accent">How it works</p>
+            <h2 className="mt-3 text-3xl md:text-4xl font-bold tracking-tight">From a link to a ranked fix list</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted">Three steps, about two minutes. Hover or tap a step to try it.</p>
           </div>
+          <HowItWorks />
         </section>
 
         {/* Criteria */}
@@ -131,7 +106,7 @@ export default async function Landing() {
           <p className="mx-auto mt-4 max-w-xl text-center text-lg text-muted">Start with a free scan. Go Pro for the full report and unlimited scans.</p>
           <div className="mx-auto mt-14 grid md:grid-cols-2 gap-6 max-w-4xl">
             {PRICING.map((p, i) => (
-              <Reveal key={p.key} delay={i * 100} className={`lift relative rounded-2xl border bg-white p-9 ${p.highlighted ? "border-accent shadow-[0_20px_50px_rgb(91_69_255/0.15)]" : "border-line shadow-sm"}`}>
+              <Reveal key={p.key} delay={i * 100} className={`lift relative rounded-2xl border bg-white p-9 ${p.highlighted ? "border-accent shadow-[0_20px_50px_rgb(240_74_15/0.15)]" : "border-line shadow-sm"}`}>
                 {p.highlighted && (
                   <span className="absolute -top-3 left-9 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-white">Full report</span>
                 )}
