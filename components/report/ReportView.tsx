@@ -3,13 +3,19 @@ import { Reveal } from "../Reveal";
 import { ScoreRing } from "../ScoreRing";
 import { SeverityPill } from "../ui";
 import { UpgradeButton } from "../UpgradeButton";
-import { AnnotationExplorer } from "./AnnotationExplorer";
 import { ExportBar } from "./ExportBar";
-import { Findings } from "./Findings";
+import { CrawledPages } from "./CrawledPages";
+import { Insights } from "./Insights";
+import { IssuesPanel } from "./IssuesPanel";
+import { ReportTabs } from "./ReportTabs";
+import { Statistics } from "./Statistics";
+import { AiHealthCard, BotAccessCard } from "./VisibilityParts";
 import { LeadCta } from "./LeadCta";
 import { Locked } from "./parts";
+import { CountUp } from "../CountUp";
 import { labelFor, PRIMARY_GOALS, PRODUCT_TYPES } from "@/lib/config";
-import { SUB_SCORES, scoreBand, type ActionItem, type Finding } from "@/lib/report";
+import { SUB_SCORES, scoreBand } from "@/lib/report";
+import { overallScore } from "@/lib/visibility";
 import type { ViewReport } from "@/lib/gate";
 
 type AuditMeta = {
@@ -43,6 +49,9 @@ export function ReportView({
 }) {
   const band = scoreBand(report.growthScore);
   const byId = new Map(report.findings.map((f) => [f.id, f]));
+  const v = report.visibility ?? null;
+  const overall = overallScore(report.growthScore, v?.score);
+  const issueCount = report.findings.length + (v ? v.checks.filter((c) => c.status !== "pass").length : 0);
   const bandCls = band.tone === "good" ? "bg-good/10 text-good" : band.tone === "warn" ? "bg-high/10 text-high" : "bg-critical/10 text-critical";
 
   return (
@@ -73,8 +82,21 @@ export function ReportView({
         </div>
       )}
 
+      <div style={{ ["--delay" as string]: "120ms" }} className="fade-up mt-8">
+        <ReportTabs
+          tabs={[
+            { id: "overview", label: "Overview" },
+            { id: "issues", label: "Issues", count: issueCount },
+            { id: "pages", label: "Crawled Pages", count: v ? v.pages.length : report.screenshots.length },
+            { id: "statistics", label: "Statistics" },
+            { id: "insights", label: "Insights" },
+          ]}
+          panels={{
+            overview: (
+              <>
+                <PillarSummary overall={overall} ux={report.growthScore} visibility={v?.score ?? null} />
       {/* Overview */}
-      <section style={{ ["--delay" as string]: "120ms" }} className="fade-up mt-8 rounded-3xl border border-line bg-white p-5 sm:p-10 shadow-[0_10px_40px_rgb(14_19_37/0.06)]">
+      <section className="rounded-3xl border border-line bg-white p-5 sm:p-10 shadow-[0_10px_40px_rgb(14_19_37/0.06)]">
         <div className="grid lg:grid-cols-[auto_1fr] gap-8 lg:gap-14 items-center">
           <div className="flex flex-col items-center text-center">
             <ScoreRing score={report.growthScore} size={200} stroke={16} />
@@ -87,7 +109,7 @@ export function ReportView({
               {SEV_TILES.map((t) => {
                 const n = report.findings.filter((f) => f.severity === t.key).length;
                 return (
-                  <a key={t.key} href="#findings" className="lift rounded-2xl border border-line bg-white p-4">
+                  <a key={t.key} href="#issues" className="lift rounded-2xl border border-line bg-white p-4">
                     <div className="flex items-center gap-2 text-sm text-muted"><span className={`h-2.5 w-2.5 rounded-full ${t.dot}`} />{t.label}</div>
                     <p className={`mt-1 text-3xl font-extrabold tabular-nums ${n ? t.text : "text-subtle"}`}>{n}</p>
                   </a>
@@ -124,7 +146,7 @@ export function ReportView({
       </section>
 
       {/* Critical issues */}
-      <section className="mt-16 sm:mt-20">
+      <section className="mt-14">
         <SectionTitle title="Top 3 critical issues" sub="The changes with the largest expected effect on growth." />
         <div className="mt-8 space-y-6">
           {report.criticalIssues.map((c, i) => {
@@ -163,52 +185,26 @@ export function ReportView({
         </div>
       </section>
 
-      {/* Findings */}
-      <section id="findings" className="mt-16 sm:mt-20 scroll-mt-20">
-        <SectionTitle title="Detailed findings" sub="Filter by area or severity. Each finding shows exactly where it appears." />
-        <div className="mt-4">
-          <Findings findings={report.findings} screenshots={report.screenshots} />
-        </div>
-      </section>
 
-      {/* Visual annotations */}
-      <section className="mt-16 sm:mt-20">
-        <SectionTitle title="Visual annotations" sub="Every captured screen with its findings pinned in place. Hover or tap a comment to locate it." />
-        <Reveal className="mt-8">
-          <AnnotationExplorer screenshots={report.screenshots} findings={report.findings} />
-          {report.locked && report.lockedCounts && report.lockedCounts.screenshots > 0 && (
-            <div className="mt-4"><Locked text={`${report.lockedCounts.screenshots} more annotated screens are included in Pro.`} /></div>
-          )}
-        </Reveal>
-      </section>
-
-      {/* Action plan */}
-      <section className="mt-16 sm:mt-20">
-        <SectionTitle title="Prioritized action plan" sub="What to do first, what to plan, and what to batch into the next sprint." />
-        {report.locked ? (
-          <div className="mt-8 relative rounded-3xl border border-line overflow-hidden">
-            <div className="grid md:grid-cols-3 gap-4 p-4 blur-[3px] opacity-60 select-none" aria-hidden>
-              {["High impact / Low effort", "High impact / High effort", "Quick wins"].map((t) => (
-                <div key={t} className="rounded-2xl bg-surface p-6 h-56">
-                  <p className="font-semibold">{t}</p>
-                  {[1, 2, 3].map((n) => <div key={n} className="mt-4 h-3 rounded bg-line-strong w-4/5" />)}
-                </div>
-              ))}
-            </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-white/70">
-              <p className="text-2xl sm:text-3xl font-bold tracking-tight">The action plan is part of Pro</p>
-              <p className="mt-2 max-w-md text-muted">Specific, detailed changes for every finding, sequenced by impact and effort.</p>
-              {mode === "owner" ? <div className="mt-5"><UpgradeButton /></div> : <a href="/upgrade" className="mt-5 font-semibold text-accent hover:underline underline-offset-4">See Pro</a>}
-            </div>
-          </div>
-        ) : (
-          <div className="mt-8 grid md:grid-cols-3 gap-5">
-            <Quadrant title="High impact / Low effort" sub="Do first" tone="good" items={report.actionPlan.highImpactLowEffort} byId={byId} />
-            <Quadrant title="High impact / High effort" sub="Plan into the roadmap" tone="accent" items={report.actionPlan.highImpactHighEffort} byId={byId} delay={90} />
-            <Quadrant title="Quick wins" sub="Batch into the next sprint" tone="cta" items={report.actionPlan.quickWins} byId={byId} delay={180} />
-          </div>
-        )}
-      </section>
+                {v && (
+                  <section className="mt-14">
+                    <SectionTitle title="AI & search visibility" sub="SEO and GEO: how well search engines and AI answer engines can find, read and cite you." />
+                    <div className="mt-8 grid lg:grid-cols-2 gap-6">
+                      <Reveal><AiHealthCard v={v} /></Reveal>
+                      <Reveal delay={90}><BotAccessCard v={v} /></Reveal>
+                    </div>
+                    <p className="mt-5 text-center"><a href="#issues" className="font-semibold text-accent hover:underline underline-offset-4">See every AI & search issue and how to fix it →</a></p>
+                  </section>
+                )}
+              </>
+            ),
+            issues: <IssuesPanel findings={report.findings} screenshots={report.screenshots} visibility={v} />,
+            pages: <CrawledPages report={report} />,
+            statistics: <Statistics report={report} />,
+            insights: <Insights auditId={audit.id} findings={report.findings} subScores={report.subScores} visibility={v} locked={report.locked} />,
+          }}
+        />
+      </div>
 
       {/* Bottom CTA */}
       <Reveal className="mt-16 sm:mt-20 rounded-3xl bg-fg p-6 sm:p-12 text-white no-print">
@@ -242,32 +238,29 @@ function SectionTitle({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-const TONES = {
-  good: { head: "bg-good", ring: "border-good/30" },
-  accent: { head: "bg-accent", ring: "border-accent/30" },
-  cta: { head: "bg-cta", ring: "border-cta/30" },
-} as const;
-
-function Quadrant({ title, sub, items, byId, tone, delay = 0 }: { title: string; sub: string; items: ActionItem[]; byId: Map<string, Finding>; tone: keyof typeof TONES; delay?: number }) {
-  const t = TONES[tone];
+function PillarSummary({ overall, ux, visibility }: { overall: number; ux: number; visibility: number | null }) {
+  const tone = (n: number) => (n >= 80 ? "text-good" : n >= 60 ? "text-high" : "text-critical");
+  const items = [
+    { label: "Overall audit score", sub: visibility == null ? "UX & UI only" : "60% UX & UI · 40% AI & search", value: overall },
+    { label: "Executive UX & UI", sub: "Growth readiness of the experience", value: ux },
+    { label: "AI & search visibility", sub: "SEO and GEO readiness", value: visibility },
+  ];
   return (
-    <Reveal delay={delay} className={`rounded-3xl border ${t.ring} bg-white overflow-hidden shadow-sm`}>
-      <div className={`${t.head} px-6 py-4 text-white`}>
-        <p className="font-bold">{title}</p>
-        <p className="text-sm text-white/80">{sub} · {items.length}</p>
-      </div>
-      <ol className="divide-y divide-line">
-        {items.length === 0 && <li className="p-6 text-sm text-subtle">None identified.</li>}
-        {items.map((a) => (
-          <li key={a.findingId}>
-            <a href={`#finding-${a.findingId}`} className="block p-5 transition-colors hover:bg-surface">
-              <p className="font-semibold leading-snug">{a.title}</p>
-              <p className="mt-1.5 text-sm text-muted leading-relaxed line-clamp-3">{byId.get(a.findingId)?.recommendedFix}</p>
-              <p className="mt-2 text-xs text-subtle">{a.findingId} · Impact {a.impact}/5 · {a.effort} effort</p>
-            </a>
-          </li>
-        ))}
-      </ol>
-    </Reveal>
+    <div className="mb-6 grid sm:grid-cols-3 gap-4">
+      {items.map((k, i) => (
+        <Reveal key={k.label} delay={i * 70} className={`lift rounded-2xl border bg-white p-5 shadow-sm ${i === 0 ? "border-accent/40 ring-1 ring-accent/20" : "border-line"}`}>
+          <p className="text-sm font-semibold">{k.label}</p>
+          <p className="text-xs text-subtle">{k.sub}</p>
+          {k.value == null ? (
+            <p className="mt-3 text-sm text-muted">Needs a public URL. <a href="#issues" className="text-accent font-medium">Why?</a></p>
+          ) : (
+            <>
+              <p className={`mt-2 text-4xl font-extrabold tracking-tight ${tone(k.value)}`}><CountUp value={k.value} /><span className="text-lg font-semibold text-subtle">/100</span></p>
+              <div className="mt-3 h-2 rounded-full bg-surface-2"><div className={`bar-grow h-2 rounded-full ${k.value >= 80 ? "bg-good" : k.value >= 60 ? "bg-high" : "bg-critical"}`} style={{ width: `${k.value}%`, ["--bar-delay" as string]: `${250 + i * 90}ms` }} /></div>
+            </>
+          )}
+        </Reveal>
+      ))}
+    </div>
   );
 }

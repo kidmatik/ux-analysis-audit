@@ -6,7 +6,8 @@ import { Reveal } from "@/components/Reveal";
 import { currentUser } from "@/lib/auth";
 import { PRICING } from "@/lib/config";
 import { SUB_SCORES } from "@/lib/report";
-import { Benchmarks, Evidence, KpiStrip, Surfaces } from "@/components/landing/Sections";
+import { Benchmarks, Evidence, KpiStrip, Pillars, Surfaces } from "@/components/landing/Sections";
+import { VISIBILITY_SUB_SCORES } from "@/lib/visibility";
 
 const STEPS = [
   {
@@ -19,7 +20,7 @@ const STEPS = [
     n: "2",
     color: "bg-cta",
     title: "We scan every screen",
-    body: "Each screen is evaluated for value proposition, onboarding friction, conversion path, cognitive load, hierarchy and trust.",
+    body: "Every screen is reviewed like a senior UX lead would, and your pages are crawled for SEO and GEO: indexing, AI crawler access, metadata and structured data.",
   },
   {
     n: "3",
@@ -29,7 +30,6 @@ const STEPS = [
   },
 ];
 
-const SCORE_TINTS = ["bg-accent", "bg-cta", "bg-medium", "bg-good", "bg-high", "bg-critical"];
 
 export default async function Landing() {
   const user = await currentUser();
@@ -43,14 +43,14 @@ export default async function Landing() {
           <div className="relative mx-auto max-w-4xl px-6 pt-20 pb-16 text-center">
             <p className="fade-up inline-flex items-center gap-2 rounded-full border border-line bg-white px-3.5 py-1.5 text-sm text-muted shadow-sm">
               <span className="h-2 w-2 rounded-full bg-good" />
-              <span className="sm:hidden">Websites, apps and Figma files</span>
-              <span className="hidden sm:inline">Websites, SaaS apps, dashboards and Figma files</span>
+              <span className="sm:hidden">Executive UX + AI & search visibility</span>
+              <span className="hidden sm:inline">Executive UX audit + AI & search visibility (SEO & GEO)</span>
             </p>
             <h1 style={{ ["--delay" as string]: "80ms" }} className="fade-up mt-7 text-[40px] sm:text-6xl lg:text-7xl font-extrabold tracking-[-0.035em] leading-[1.02]">
               Find what’s blocking growth <span className="text-accent">inside your product.</span>
             </h1>
             <p style={{ ["--delay" as string]: "160ms" }} className="fade-up mx-auto mt-6 max-w-2xl text-lg md:text-xl text-muted leading-relaxed">
-              Enter your URL, or connect your app, dashboard or Figma file, and get an executive UX and growth audit, with every issue pinned to the exact place on screen and a clear plan of what to fix first.
+              A senior-level UX and UI audit of your website, app or dashboard, plus an AI and search visibility check for Google, ChatGPT, Claude and Perplexity. Every issue is pinned on screen, with a clear plan of what to fix first.
             </p>
             <div style={{ ["--delay" as string]: "240ms" }} className="fade-up mx-auto mt-10 max-w-2xl">
               <HeroAuditForm signedIn={Boolean(user)} />
@@ -71,6 +71,7 @@ export default async function Landing() {
           </div>
         </section>
 
+        <Pillars />
         <KpiStrip />
         <Surfaces signedIn={Boolean(user)} />
         <Evidence />
@@ -93,16 +94,31 @@ export default async function Landing() {
         {/* Criteria */}
         <section className="border-y border-line bg-surface">
           <div className="mx-auto max-w-6xl px-5 sm:px-6 py-16 sm:py-24">
-            <h2 className="text-center text-3xl md:text-4xl font-bold tracking-tight">One score your whole team understands</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">The Growth Readiness Score weighs six criteria by their effect on acquisition, activation and revenue.</p>
-            <div className="mt-14 grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {SUB_SCORES.map((s, i) => (
-                <Reveal key={s.key} delay={i * 60} className="lift rounded-2xl border border-line bg-white p-6 shadow-sm">
+            <h2 className="text-center text-3xl md:text-4xl font-bold tracking-tight">Two scores your whole team understands</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-muted">Each pillar weighs six criteria by their effect on acquisition, activation and revenue. Together they make your overall audit score.</p>
+            <div className="mt-14 grid lg:grid-cols-2 gap-8">
+              {[
+                { title: "Executive UX & UI", share: "60%", dot: "bg-accent", items: SUB_SCORES.map((x) => ({ key: x.key, label: x.label, weight: x.weight })) },
+                { title: "AI & search visibility", share: "40%", dot: "bg-[#14b8a6]", items: VISIBILITY_SUB_SCORES.map((x) => ({ key: x.key, label: x.label, weight: x.weight })) },
+              ].map((p, pi) => (
+                <Reveal key={p.title} delay={pi * 100} className="rounded-3xl border border-line bg-white p-6 sm:p-8 shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className={`h-2.5 w-10 rounded-full ${SCORE_TINTS[i]}`} />
-                    <span className="text-sm font-semibold text-muted tabular-nums">{Math.round(s.weight * 100)}%</span>
+                    <h3 className="flex items-center gap-2.5 text-xl font-semibold"><span className={`h-3 w-3 rounded-full ${p.dot}`} />{p.title}</h3>
+                    <span className="rounded-full bg-surface-2 px-3 py-1 text-sm font-semibold text-muted">{p.share} of overall</span>
                   </div>
-                  <p className="mt-5 text-lg font-semibold">{s.label}</p>
+                  <ul className="mt-6 space-y-4">
+                    {p.items.map((x, i) => (
+                      <li key={x.key}>
+                        <div className="flex items-baseline justify-between gap-3 text-[15px]">
+                          <span className="font-medium">{x.label}</span>
+                          <span className="tabular-nums text-sm font-semibold text-muted">{Math.round(x.weight * 100)}%</span>
+                        </div>
+                        <div className="mt-1.5 h-2 rounded-full bg-surface-2">
+                          <div className={`bar-grow h-2 rounded-full ${p.dot}`} style={{ width: `${x.weight * 400}%`, ["--bar-delay" as string]: `${200 + i * 70}ms` }} />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
                 </Reveal>
               ))}
             </div>

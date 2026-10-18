@@ -5,6 +5,7 @@ import { captureAvailable, captureDemoAccount, captureLiveUrl } from "./capture"
 import { captureFigma } from "./figma";
 import { claudeEnabled, claudeReport } from "./claude";
 import { heuristicReport, type AuditContext } from "./heuristic";
+import { auditVisibility, visibilitySummary } from "./visibility";
 import type { PageSignals, Screen } from "./types";
 
 export type AccessDetails = {
@@ -63,6 +64,17 @@ async function existingScreens(auditId: string): Promise<Screen[]> {
   }));
 }
 
+function visibilityTarget(accessMethod: string, productUrl: string | null | undefined) {
+  if (!productUrl || (accessMethod !== "url" && accessMethod !== "demo")) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(productUrl) ? productUrl : `https://${productUrl}`);
+    // Demo accounts point at the app; audit the public site at its origin instead.
+    return accessMethod === "demo" ? `${u.origin}/` : u.toString();
+  } catch {
+    return null;
+  }
+}
+
 export async function runAudit(id: string) {
   const audit = await prisma.audit.findUnique({ where: { id } });
   if (!audit || audit.status === "complete") return;
@@ -80,6 +92,17 @@ export async function runAudit(id: string) {
   if (details.reviewerNotes) notes.push(details.reviewerNotes);
   if (details.mfaNotes) notes.push(`MFA: ${details.mfaNotes}`);
   if (details.loomUrl) notes.push(`Walkthrough video: ${details.loomUrl}`);
+
+  // AI & search visibility runs over plain HTTP alongside capture. It only ever reads the
+  // public URL (never with demo credentials) and its failure never fails the audit.
+  const publicUrl = visibilityTarget(audit.accessMethod, audit.productUrl);
+  const visibilityRun = publicUrl
+    ? auditVisibility(publicUrl).catch((e) => {
+        console.error("[audit] visibility audit failed", (e as Error).message);
+        notes.push(`AI & search visibility could not be audited: ${(e as Error).message}`);
+        return null;
+      })
+    : Promise.resolve(null);
 
   try {
     const secrets: Secrets = audit.encryptedSecret ? decryptJson<Secrets>(audit.encryptedSecret) : {};
@@ -140,6 +163,9 @@ export async function runAudit(id: string) {
     await timed(id, 1, async () => {});
     await timed(id, 2, async () => {});
 
+    const visibility = await visibilityRun;
+    if (visibility) notes.push(visibilitySummary(visibility));
+
     // Stage 3: analysis
     const { core, engine } = await timed(id, 3, async () => {
       if (claudeEnabled()) {
@@ -153,7 +179,7 @@ export async function runAudit(id: string) {
     });
 
     // Stage 4: action plan and report assembly
-    const report = await timed(id, 4, async () => finalizeReport(core, screens, engine));
+    const report = await timed(id, 4, async () => ({ ...finalizeReport(core, screens, engine), visibility }));
     await prisma.audit.update({
       where: { id },
       data: {

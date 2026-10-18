@@ -3,6 +3,7 @@ import { AnnotatedShot } from "@/components/AnnotatedShot";
 import { CountUp } from "@/components/CountUp";
 import { Reveal } from "@/components/Reveal";
 import { ScoreRing } from "@/components/ScoreRing";
+import { HealthGauge } from "@/components/report/VisibilityParts";
 import { SeverityPill } from "@/components/ui";
 import { BENCHMARK_LABEL, BENCHMARKS, EVIDENCE, SAMPLE_KPIS, SCORE_MARKERS, SUB_SCORE_SPARK, SURFACES } from "@/lib/landing";
 
@@ -210,5 +211,82 @@ export function Surfaces({ signedIn }: { signedIn: boolean }) {
         </div>
       </div>
     </section>
+  );
+}
+
+const PILLAR_BOTS = [
+  { engine: "Google Search", allowed: true },
+  { engine: "ChatGPT", allowed: false },
+  { engine: "Claude", allowed: true },
+  { engine: "Perplexity", allowed: true },
+  { engine: "Gemini", allowed: false },
+];
+
+/** The two audit pillars: executive UX & UI, and AI & search visibility (SEO + GEO). */
+export function Pillars() {
+  return (
+    <section id="pillars" className="mx-auto max-w-6xl px-5 sm:px-6 py-16 sm:py-24 scroll-mt-16">
+      <SectionHead eyebrow="Two audits in one" title="How your product looks to people, and to machines" body="A senior-level review of the experience, plus a check of how search engines and AI assistants find, read and recommend you." />
+      <div className="mt-12 grid lg:grid-cols-2 gap-6">
+        <Reveal className="lift flex flex-col rounded-3xl border border-line bg-white p-6 sm:p-8 shadow-sm">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">Pillar 1</span>
+          <h3 className="mt-4 text-2xl font-bold tracking-tight">Executive UX & UI analysis</h3>
+          <p className="mt-2 text-muted leading-relaxed">What a senior product designer would flag on your website, landing page, app or web system, written for founders and executives.</p>
+          <ul className="mt-5 grid sm:grid-cols-2 gap-x-4 gap-y-2 text-[15px]">
+            {["Value proposition & messaging", "Onboarding & activation", "Conversion paths & CTAs", "Visual hierarchy & UI quality", "Cognitive load & navigation", "Trust & credibility"].map((t) => (
+              <li key={t} className="flex gap-2"><Check className="text-accent" />{t}</li>
+            ))}
+          </ul>
+          <div className="mt-6 flex-1">
+            <AnnotatedShot src="/sample/home.png" width={1440} height={900} mode="focus" markers={[{ box: { screenshotIndex: 0, x: 2.6, y: 15.4, w: 49, h: 25.5 }, label: "1" }]} alt="Annotated headline issue" />
+          </div>
+        </Reveal>
+
+        <Reveal delay={100} className="lift flex flex-col rounded-3xl border border-line bg-white p-6 sm:p-8 shadow-sm">
+          <span className="inline-flex w-fit items-center gap-2 rounded-full bg-[#14b8a6]/12 px-3 py-1 text-sm font-semibold text-[#0f766e]">Pillar 2</span>
+          <h3 className="mt-4 text-2xl font-bold tracking-tight">AI & search visibility</h3>
+          <p className="mt-2 text-muted leading-relaxed">SEO and GEO best practices, checked on your live pages, with the exact changes that get you found and cited.</p>
+          <div className="mt-5 grid sm:grid-cols-2 gap-4 text-[15px]">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-medium">SEO · search engines</p>
+              <ul className="mt-2 space-y-1.5">
+                {["Crawlability & indexing", "Titles, descriptions & sharing", "Speed & page weight", "Headings & content depth"].map((t) => <li key={t} className="flex gap-2"><Check className="text-medium" />{t}</li>)}
+              </ul>
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider text-[#0f766e]">GEO · AI answer engines</p>
+              <ul className="mt-2 space-y-1.5">
+                {["AI crawler access", "llms.txt & sitemaps", "Structured data & entities", "Answer-ready, citable content"].map((t) => <li key={t} className="flex gap-2"><Check className="text-[#14b8a6]" />{t}</li>)}
+              </ul>
+            </div>
+          </div>
+          <div className="mt-6 grid sm:grid-cols-[auto_1fr] gap-5 items-center rounded-2xl border border-line bg-surface p-5">
+            <div className="flex flex-col items-center">
+              <HealthGauge score={52} size={150} />
+              <p className="mt-1 text-xs text-muted">AI & search health</p>
+            </div>
+            <ul className="space-y-2">
+              {PILLAR_BOTS.map((b, i) => (
+                <li key={b.engine} className="grid grid-cols-[6.5rem_1fr_auto] items-center gap-2 text-sm">
+                  <span className="truncate">{b.engine}</span>
+                  <span className="h-1.5 rounded-full bg-surface-2">
+                    <span className={`bar-grow block h-1.5 rounded-full ${b.allowed ? "bg-good" : "bg-critical"}`} style={{ width: b.allowed ? "100%" : "14%", ["--bar-delay" as string]: `${250 + i * 80}ms` }} />
+                  </span>
+                  <span className={`text-xs font-semibold ${b.allowed ? "text-good" : "text-critical"}`}>{b.allowed ? "Allowed" : "Blocked"}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function Check({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 20 20" className={`mt-0.5 h-5 w-5 shrink-0 ${className}`} fill="none" stroke="currentColor" strokeWidth="2.2" aria-hidden>
+      <path d="M5 10.5l3.2 3.2L15 7" />
+    </svg>
   );
 }

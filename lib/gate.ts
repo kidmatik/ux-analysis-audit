@@ -4,9 +4,9 @@ export type ViewReport = Report & { locked: boolean; lockedCounts?: { findings: 
 
 const LOCKED = "";
 
-// Free accounts get a teaser: score, sub-scores, the three critical issues and an annotated
-// preview. Recommended fixes, full finding detail and the action plan are Pro only. Locked
-// content is removed on the server so it never reaches the browser.
+// Free accounts get a teaser: score, sub-scores, the three critical issues, an annotated
+// preview and the visibility scan without its fixes. Recommended fixes, full finding detail and
+// the action plan are Pro only. Locked content is removed on the server so it never reaches the browser.
 export function gateReport(report: Report, plan: string): ViewReport {
   if (plan === "pro") return { ...report, locked: false };
   const previewIds = new Set(report.criticalIssues.map((c) => c.findingId));
@@ -29,5 +29,7 @@ export function gateReport(report: Report, plan: string): ViewReport {
     ),
     actionPlan: { highImpactLowEffort: [], highImpactHighEffort: [], quickWins: [] },
     screenshots: report.screenshots.map((s, i) => (previewShots.has(i) ? s : { ...s, src: "" })),
+    // Visibility scores, bot access, crawled pages and what each check found stay visible; the fixes are Pro.
+    visibility: report.visibility ? { ...report.visibility, checks: report.visibility.checks.map((c) => ({ ...c, fix: LOCKED })) } : report.visibility,
   };
 }

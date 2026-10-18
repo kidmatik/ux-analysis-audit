@@ -1,0 +1,10 @@
+# Sample robots.txt for the fictional Acme Insights site
+User-agent: *
+Allow: /
+Disallow: /app.html
+
+User-agent: GPTBot
+User-agent: CCBot
+Disallow: /
+
+Sitemap: http://localhost:8090/sitemap.xml

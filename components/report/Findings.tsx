@@ -25,7 +25,7 @@ export function Findings({ findings, screenshots }: { findings: Finding[]; scree
 
   return (
     <div>
-      <div className="sticky top-16 z-20 -mx-4 sm:mx-0 bg-white/90 backdrop-blur px-4 sm:px-0 py-3 border-b border-line no-print">
+      <div className="sticky top-[8.75rem] z-20 -mx-4 sm:mx-0 bg-white/90 backdrop-blur px-4 sm:px-0 py-3 border-b border-line no-print">
         <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
           <Chip active={category === "all"} onClick={() => setCategory("all")}>All <Count n={findings.length} /></Chip>
           {cats.map((c) => (
@@ -93,7 +93,7 @@ function FindingCard({ f, shot }: { f: Finding; shot?: Report["screenshots"][num
     );
   }
   return (
-    <article id={`finding-${f.id}`} className={`fade-up scroll-mt-40 rounded-2xl border border-line border-l-4 ${SEV_BORDER[f.severity]} bg-white p-5 sm:p-8 shadow-sm`}>
+    <article id={`finding-${f.id}`} className={`fade-up scroll-mt-64 rounded-2xl border border-line border-l-4 ${SEV_BORDER[f.severity]} bg-white p-5 sm:p-8 shadow-sm`}>
       <div className="grid lg:grid-cols-[1fr_minmax(0,440px)] gap-6 lg:gap-10">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -120,7 +120,7 @@ function FindingCard({ f, shot }: { f: Finding; shot?: Report["screenshots"][num
           </div>
         </div>
         {shot?.src && f.annotation && (
-          <figure className="lg:sticky lg:top-44 self-start">
+          <figure className="lg:sticky lg:top-64 self-start">
             <AnnotatedShot src={shot.src} width={shot.width} height={shot.height} alt={shot.label} mode="focus" spotlight markers={[{ box: f.annotation, label: f.id.replace(/^F/, "") }]} />
             <figcaption className="mt-2.5 flex items-start gap-2 text-sm text-muted">
               <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-critical" />

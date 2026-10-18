@@ -73,7 +73,7 @@ export const PRICING = [
     price: "$0",
     cadence: "one scan",
     description: "Your first product scan, free. A preview of what is blocking growth.",
-    features: ["Growth Readiness Score and sub-scores", "Top 3 critical issues", "Annotated preview of findings", "Shareable teaser report"],
+    features: ["UX & UI and AI & search scores", "Top 3 critical issues", "SEO & GEO issue list", "Annotated preview of findings"],
     cta: "Start free scan",
     highlighted: false,
   },
@@ -86,7 +86,8 @@ export const PRICING = [
     features: [
       "Unlimited scans every month",
       "Full report with every annotated finding",
-      "Prioritized action plan with specific changes",
+      "Every SEO & GEO fix, step by step",
+      "Insights: next steps and jobs to be done",
       "PDF, share link and Notion export",
     ],
     cta: "Go Pro",

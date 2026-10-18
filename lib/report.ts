@@ -1,3 +1,4 @@
+import type { VisibilityReport } from "./visibility";
 import { z } from "zod";
 
 // The report schema is shared by the Claude engine (as its structured-output format),
@@ -69,6 +70,7 @@ export type ActionItem = { findingId: string; title: string; impact: number; eff
 
 export type Report = ReportCore & {
   growthScore: number;
+  visibility?: VisibilityReport | null;
   actionPlan: {
     highImpactLowEffort: ActionItem[];
     highImpactHighEffort: ActionItem[];

@@ -2,6 +2,7 @@ import React from "react";
 import { Document, Image, Page, StyleSheet, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { FINDING_CATEGORIES } from "./config";
 import { SUB_SCORES, scoreBand, sortFindings, type Box, type Finding, type Report } from "./report";
+import { VISIBILITY_SUB_SCORES, type VisibilityReport } from "./visibility";
 
 export type PdfImage = { data: Buffer; format: "png" | "jpg" } | null;
 
@@ -15,6 +16,7 @@ const C = {
   high: "#FF8A00",
   medium: "#2F7CFF",
   dark: "#5B45FF",
+  good: "#12A150",
 };
 
 const s = StyleSheet.create({
@@ -115,6 +117,68 @@ function FindingBlock({ f, report, images }: { f: Finding; report: Report; image
   );
 }
 
+const SEV_RANK = { critical: 0, high: 1, medium: 2, low: 3 } as const;
+
+function VisibilityPage({ v, product }: { v: VisibilityReport; product: string }) {
+  const failing = v.checks.filter((c) => c.status !== "pass").sort((a, b) => Number(a.status === "warn") - Number(b.status === "warn") || SEV_RANK[a.severity] - SEV_RANK[b.severity]);
+  const passing = v.checks.length - failing.length;
+  return (
+    <Page size="A4" style={s.page}>
+      <Text style={s.eyebrow}>AI & search visibility</Text>
+      <View style={[s.row, { alignItems: "flex-end", marginBottom: 6 }]}>
+        <Text style={{ fontSize: 40, lineHeight: 1, fontFamily: "Helvetica-Bold", color: C.ink }}>{v.score}</Text>
+        <Text style={{ fontSize: 12, lineHeight: 1, color: C.muted, marginLeft: 4, marginBottom: 4 }}>/ 100</Text>
+      </View>
+      <Text style={{ color: C.muted, marginBottom: 14 }}>
+        {v.origin} · {v.pages.length} pages crawled · {passing} of {v.checks.length} checks passed · robots.txt {v.files.robotsTxt ? "found" : "missing"} · sitemap {v.files.sitemap ? "found" : "missing"} · llms.txt {v.files.llmsTxt ? "found" : "missing"}
+      </Text>
+      <View style={[s.row, { marginBottom: 14 }]}>
+        <View style={{ flex: 1, paddingRight: 16 }}>
+          {v.subScores.map((sc) => (
+            <View key={sc.key} style={{ marginBottom: 7 }}>
+              <View style={[s.row, { justifyContent: "space-between", fontSize: 9, marginBottom: 2 }]}>
+                <Text>{VISIBILITY_SUB_SCORES.find((d) => d.key === sc.key)?.label}</Text>
+                <Text>{sc.score}</Text>
+              </View>
+              <View style={{ height: 4, backgroundColor: C.line, borderRadius: 2 }}>
+                <View style={{ height: 4, width: `${sc.score}%`, backgroundColor: C.accent, borderRadius: 2 }} />
+              </View>
+            </View>
+          ))}
+        </View>
+        <View style={{ width: 230 }}>
+          <Text style={[s.label, { marginTop: 0, marginBottom: 4 }]}>Crawler access</Text>
+          {v.bots.map((b) => (
+            <View key={b.name} style={[s.row, { justifyContent: "space-between", fontSize: 8.5, paddingVertical: 2, borderBottomWidth: 1, borderBottomColor: C.line }]}>
+              <Text style={{ width: 82, fontFamily: "Helvetica-Bold" }}>{b.name}</Text>
+              <Text style={{ flex: 1, color: C.muted }}>{b.engine}</Text>
+              <Text style={{ color: b.allowed ? C.good : C.critical }}>{b.allowed ? "Allowed" : "Blocked"}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+      <Text style={s.h2}>Visibility issues</Text>
+      {failing.length === 0 && <Text style={{ color: C.muted }}>All visibility checks pass.</Text>}
+      {failing.map((c) => (
+        <View key={c.id} style={[s.card, { padding: 10, marginBottom: 8 }]} wrap={false}>
+          <View style={[s.row, { justifyContent: "space-between", marginBottom: 3 }]}>
+            <Text style={[s.h3, { flex: 1, paddingRight: 8, marginBottom: 0 }]}>{c.label}</Text>
+            <Text style={[s.pill, { backgroundColor: c.status === "fail" ? sevColor(c.severity) : C.muted }]}>{`${c.track} · ${c.status === "fail" ? c.severity : `warning · ${c.severity}`}`}</Text>
+          </View>
+          <Text>{c.detail}</Text>
+          {c.fix ? (
+            <>
+              <Text style={s.label}>Fix</Text>
+              <Text>{c.fix}</Text>
+            </>
+          ) : null}
+        </View>
+      ))}
+      <Footer product={product} />
+    </Page>
+  );
+}
+
 export function ReportPdf({ productName, productUrl, report, images }: { productName: string; productUrl: string; report: Report; images: PdfImage[] }) {
   const band = scoreBand(report.growthScore);
   const findings = sortFindings(report.findings);
@@ -194,6 +258,8 @@ export function ReportPdf({ productName, productUrl, report, images }: { product
         })}
         <Footer product={productName} />
       </Page>
+
+      {report.visibility && <VisibilityPage v={report.visibility} product={productName} />}
 
       <Page size="A4" style={s.page}>
         <Text style={s.h2}>Prioritized action plan</Text>

@@ -1,10 +1,13 @@
 import { prisma } from "./prisma";
 import { finalizeReport, type Finding, type ReportCore } from "./report";
+import { visibilityScore, visibilitySubScores, visibilityTrack, type CrawledPage, type VisibilityCheck, type VisibilityReport } from "./visibility";
 
 // The public sample report: a fictional B2B SaaS product ("Acme Insights") rendered from
 // scripts/sample-site and captured into public/sample by scripts/capture-sample.mjs.
 
 export const SAMPLE_TOKEN = "sample";
+// Bump when the sample content changes so the stored sample report is regenerated.
+const SAMPLE_VERSION = 3;
 const SAMPLE_EMAIL = "sample@ux-analysis-audit.local";
 
 const SHOTS = [
@@ -148,9 +151,102 @@ const core: ReportCore = {
   screenshotLabels: SHOTS.map((s) => s.label),
 };
 
+
+// Fictional AI & search visibility scan of the Acme Insights marketing site.
+const ORIGIN = "https://acme-insights.example";
+const u = (path: string) => `${ORIGIN}${path}`;
+type SamplePage = Omit<CrawledPage, "url" | "issues" | "status"> & { path: string };
+const samplePages: SamplePage[] = [
+  { path: "/", title: "Acme Insights: AI-native operational intelligence", description: "", h1Count: 1, words: 412, loadMs: 1840, bytes: 186_400, indexable: true, hasStructuredData: false },
+  { path: "/pricing", title: "Pricing | Acme Insights", description: "", h1Count: 1, words: 520, loadMs: 1310, bytes: 98_200, indexable: true, hasStructuredData: false },
+  { path: "/signup", title: "Sign up | Acme Insights", description: "", h1Count: 0, words: 64, loadMs: 760, bytes: 54_100, indexable: true, hasStructuredData: false },
+  { path: "/features", title: "Features | Acme Insights", description: "Unified data layer, anomaly detection, forecasting, dashboards and granular permissions for revenue teams.", h1Count: 2, words: 860, loadMs: 3120, bytes: 642_300, indexable: true, hasStructuredData: false },
+  { path: "/blog", title: "Acme Insights Blog", description: "Guides, benchmarks and playbooks on revenue operations, forecasting and pipeline analytics from the Acme Insights team.", h1Count: 1, words: 310, loadMs: 1450, bytes: 120_800, indexable: true, hasStructuredData: false },
+  { path: "/blog/revenue-forecasting-guide", title: "Acme Insights Blog", description: "", h1Count: 1, words: 1840, loadMs: 5420, bytes: 210_600, indexable: true, hasStructuredData: true },
+  { path: "/about", title: "About Acme Insights | Our mission and team", description: "Acme Insights helps revenue leaders forecast with confidence. Meet the team and investors behind the platform.", h1Count: 1, words: 290, loadMs: 980, bytes: 88_500, indexable: true, hasStructuredData: false },
+  { path: "/security", title: "Security | Acme Insights", description: "", h1Count: 1, words: 180, loadMs: 870, bytes: 72_300, indexable: false, hasStructuredData: false },
+  { path: "/integrations", title: "120+ integrations for your revenue stack | Acme", description: "Connect Salesforce, HubSpot, Stripe and more.", h1Count: 1, words: 640, loadMs: 1620, bytes: 156_900, indexable: true, hasStructuredData: false },
+  { path: "/docs", title: "Documentation | Acme Insights", description: "Set up Acme Insights: connect data sources, define metrics, build dashboards and manage roles and permissions.", h1Count: 1, words: 450, loadMs: 1130, bytes: 110_200, indexable: true, hasStructuredData: false },
+];
+
+const V = (c: Omit<VisibilityCheck, "track">): VisibilityCheck => ({ ...c, track: visibilityTrack(c.id) });
+const sampleChecks: VisibilityCheck[] = [
+  V({ id: "robots_txt", group: "crawlability", label: "robots.txt present", status: "pass", severity: "low", detail: "robots.txt found with 3 user-agent groups and 1 sitemap reference.", fix: "", pages: [] }),
+  V({ id: "sitemap", group: "crawlability", label: "XML sitemap", status: "pass", severity: "low", detail: `Sitemap found at ${ORIGIN}/sitemap.xml listing 42 URLs.`, fix: "", pages: [] }),
+  V({ id: "search_bots_blocked", group: "crawlability", label: "Search engines can crawl the site", status: "pass", severity: "low", detail: "Googlebot and Bingbot are allowed to crawl the home page.", fix: "", pages: [] }),
+  V({ id: "noindex_pages", group: "crawlability", label: "Pages open to indexing", status: "warn", severity: "medium", detail: "1 page of 10 carries noindex (meta robots or X-Robots-Tag): the security page, likely left over from staging.", fix: "Remove noindex from pages you want found in search and AI answers. Keep it only on private, duplicate or thank-you pages.", pages: [u("/security")] }),
+  V({ id: "broken_pages", group: "crawlability", label: "No broken internal links", status: "pass", severity: "low", detail: "All 10 crawled pages returned HTTP 200.", fix: "", pages: [] }),
+  V({ id: "https", group: "crawlability", label: "Served over HTTPS", status: "pass", severity: "low", detail: `${ORIGIN} is served over HTTPS.`, fix: "", pages: [] }),
+  V({ id: "canonical", group: "crawlability", label: "Canonical URLs", status: "warn", severity: "low", detail: "3 of 10 pages have no canonical tag.", fix: 'Add <link rel="canonical" href="..."> with the page\'s own absolute URL to every page to consolidate duplicate URLs.', pages: [u("/blog"), u("/blog/revenue-forecasting-guide"), u("/docs")] }),
+  V({ id: "ai_bots_blocked", group: "ai_access", label: "AI crawlers allowed", status: "fail", severity: "high", detail: "robots.txt blocks GPTBot (ChatGPT), CCBot (Common Crawl). These assistants cannot read the site, so it is less likely to be cited or recommended in their answers.", fix: 'Unless blocking is a deliberate policy, replace the blocking groups in robots.txt with an explicit allow for each crawler, e.g. "User-agent: GPTBot / User-agent: CCBot / Allow: / / Disallow: /app/" (keep private app paths disallowed). Re-test with each vendor\'s robots checker, then watch server logs for the crawlers returning within a few days.', pages: [u("/robots.txt")] }),
+  V({ id: "llms_txt", group: "ai_access", label: "llms.txt", status: "warn", severity: "low", detail: "No /llms.txt. This emerging convention gives AI assistants a curated summary of the product and links to the most important pages.", fix: 'Publish /llms.txt as Markdown: "# Acme Insights" on the first line, a "> one-sentence summary of what it is and who it is for", a short paragraph on key facts (category, pricing model, integrations), then "## Product", "## Pricing", "## Docs" and "## Customers" sections, each a list of "- [Page title](absolute URL): one-line description". Keep it under 100 lines and update it with each launch.', pages: [] }),
+  V({ id: "title_present", group: "metadata", label: "Page titles present", status: "pass", severity: "low", detail: "All 10 pages have a title.", fix: "", pages: [] }),
+  V({ id: "title_length", group: "metadata", label: "Title length (30-60 characters)", status: "warn", severity: "low", detail: '7 of 10 titles are outside 30-60 characters: "Pricing | Acme Insights" (23), "Sign up | Acme Insights" (23), "Acme Insights Blog" (18).', fix: "Rewrite titles to 30-60 characters: the page's specific topic or outcome first, then the brand name.", pages: ["/pricing", "/signup", "/features", "/blog", "/blog/revenue-forecasting-guide", "/security", "/docs"].map(u) }),
+  V({ id: "duplicate_titles", group: "metadata", label: "Unique page titles", status: "warn", severity: "medium", detail: '2 pages share 1 title, e.g. "Acme Insights Blog" on 2 pages. Every blog article inherits the blog index title.', fix: "Write a distinct title for each page so search engines and AI assistants can tell them apart.", pages: [u("/blog"), u("/blog/revenue-forecasting-guide")] }),
+  V({ id: "meta_description", group: "metadata", label: "Meta description present", status: "fail", severity: "medium", detail: "5 of 10 pages have no meta description, including the home page. Search engines and AI previews fall back to arbitrary page text.", fix: "Add a 70-160 character meta description to each page that states who it is for and the outcome it delivers.", pages: ["/", "/pricing", "/signup", "/blog/revenue-forecasting-guide", "/security"].map(u) }),
+  V({ id: "description_length", group: "metadata", label: "Description length (70-160 characters)", status: "warn", severity: "low", detail: "1 of 5 descriptions is outside 70-160 characters.", fix: "Keep descriptions between 70 and 160 characters so they are not truncated or padded in results.", pages: [u("/integrations")] }),
+  V({ id: "duplicate_descriptions", group: "metadata", label: "Unique meta descriptions", status: "pass", severity: "low", detail: "No duplicate descriptions found.", fix: "", pages: [] }),
+  V({ id: "og_tags", group: "metadata", label: "Open Graph sharing tags", status: "warn", severity: "low", detail: "6 of 10 pages are missing og:title or og:image, so links shared in Slack, LinkedIn or chat assistants show no preview.", fix: "Add og:title, og:description and a 1200x630 og:image to every page (and twitter:card).", pages: ["/signup", "/blog", "/blog/revenue-forecasting-guide", "/security", "/integrations", "/docs"].map(u) }),
+  V({ id: "structured_data", group: "structured_data", label: "Structured data (JSON-LD)", status: "warn", severity: "medium", detail: "The home page has no JSON-LD, although 1 of 10 other pages does (an Article on the blog).", fix: 'Add a <script type="application/ld+json"> block to the home page with an @graph of: Organization (name, url, logo, sameAs), WebSite (name, url) and SoftwareApplication (name, applicationCategory "BusinessApplication", operatingSystem "Web", offers with price and priceCurrency, aggregateRating if you have reviews). Validate with Google\'s Rich Results Test and the Schema.org validator.', pages: [u("/")] }),
+  V({ id: "organization_schema", group: "structured_data", label: "Organization or product schema", status: "warn", severity: "medium", detail: "No Organization, WebSite, Product or SoftwareApplication schema found. AI answers and knowledge panels rely on these to identify the company and its product.", fix: "Add Organization (name, logo, sameAs social profiles) and WebSite schema site-wide, plus SoftwareApplication or Product schema on product and pricing pages.", pages: [u("/")] }),
+  V({ id: "single_h1", group: "content", label: "One H1 per page", status: "warn", severity: "medium", detail: "2 of 10 pages do not have exactly one H1 (/signup: 0, /features: 2).", fix: "Use exactly one H1 per page that states the page's main topic; demote other headings to H2.", pages: [u("/signup"), u("/features")] }),
+  V({ id: "lang_attr", group: "content", label: "Language declared", status: "pass", severity: "low", detail: "All pages declare a language (en).", fix: "", pages: [] }),
+  V({ id: "img_alt", group: "content", label: "Image alt text", status: "fail", severity: "medium", detail: "14 of 38 images (37%) have no alt attribute, so search engines, AI models and screen readers cannot interpret them.", fix: 'Add descriptive alt text to meaningful images (product screenshots, diagrams, logos) and alt="" to purely decorative ones.', pages: ["/", "/features", "/integrations", "/blog/revenue-forecasting-guide"].map(u) }),
+  V({ id: "thin_content", group: "content", label: "Substantial page content", status: "warn", severity: "medium", detail: "2 of 10 pages have under 250 words of visible text (/signup: 64, /security: 180). Thin pages give search engines and AI assistants little to quote.", fix: "Expand key pages with specific, answer-style copy: who it is for, the problem, how it works, proof and FAQs.", pages: [u("/signup"), u("/security")] }),
+  V({ id: "viewport_meta", group: "content", label: "Mobile viewport", status: "pass", severity: "low", detail: "All pages declare a mobile viewport.", fix: "", pages: [] }),
+  V({ id: "entity_schema", group: "structured_data", label: "Brand entity defined", status: "warn", severity: "medium", detail: "No Organization schema, so AI assistants cannot reliably tie the site to the company, its logo and its profiles elsewhere.", fix: 'Add site-wide Organization JSON-LD with "name", "url", "logo" (absolute URL to a square PNG), "description" and "sameAs" listing LinkedIn, Crunchbase, G2, GitHub and X profile URLs. Use the exact same company name everywhere.', pages: [u("/")] }),
+  V({ id: "faq_or_qa_content", group: "ai_access", label: "Question-and-answer content", status: "warn", severity: "medium", detail: "None of the 10 pages have question-style headings or FAQPage schema. AI assistants answer user questions; pages that mirror those questions are the ones they quote.", fix: 'Add an FAQ section to the home, pricing and product pages with 5-8 real buyer questions as H2/H3 headings ("How long does setup take?", "How is pricing calculated?") and 40-60 word direct answers, and mark it up with FAQPage JSON-LD.', pages: ["/", "/pricing", "/features"].map(u) }),
+  V({ id: "answer_ready_summary", group: "ai_access", label: "Answer-ready summary", status: "warn", severity: "medium", detail: 'The first paragraph on the home page is 58 words of capability list: "Acme Insights connects your CRM, billing, product analytics, support desk and data warehouse…". It never says what the product is or who it is for, so assistants have no definition to quote.', fix: 'Directly under the H1, add a 40-80 word paragraph that reads as a definition: "Acme Insights is a revenue analytics platform for B2B SaaS revenue teams that forecasts pipeline and flags risk two weeks earlier. It connects CRM, billing and product data in minutes, and is used by <proof>." Assistants lift this kind of sentence verbatim.', pages: [u("/")] }),
+  V({ id: "author_or_publisher", group: "ai_access", label: "Author and publisher signals", status: "warn", severity: "medium", detail: "2 of 3 blog, docs or guide pages name no author or publisher (no byline, meta author or JSON-LD author). Only the forecasting guide has Article schema with an author.", fix: 'Show a byline with the author\'s name, role and a link to their profile page, and add Article JSON-LD with "author" (Person with name, url, sameAs LinkedIn) and "publisher" (your Organization). Expertise signals make content more likely to be cited.', pages: [u("/blog"), u("/docs")] }),
+  V({ id: "freshness", group: "ai_access", label: "Freshness signals", status: "warn", severity: "low", detail: "Only 2 of 10 pages expose a published or modified date (JSON-LD dateModified, article:modified_time, <time> or a Last-Modified header). Answer engines favour content they can tell is current.", fix: 'Add "datePublished" and "dateModified" to each page\'s JSON-LD, show "Updated <month year>" on docs and articles, and send an accurate Last-Modified header from the server or CDN.', pages: ["/", "/pricing", "/signup", "/features", "/about", "/security", "/integrations", "/docs"].map(u) }),
+  V({ id: "citable_facts", group: "ai_access", label: "Citable facts and numbers", status: "warn", severity: "medium", detail: '6 of 10 pages state fewer than two concrete numbers (percentages, prices, customer counts, time saved); the home page has 1 ("120 native integrations"). "Billions of events" is not a verifiable figure.', fix: 'Add 3-5 sourced facts per key page: customer count, a quantified customer result ("cut forecast error by 32% at Northwind"), setup time, number of integrations and starting price. Put each in its own short sentence so it can be quoted on its own.', pages: ["/", "/signup", "/features", "/about", "/security", "/docs"].map(u) }),
+  V({ id: "heading_structure", group: "content", label: "Logical heading outline", status: "warn", severity: "low", detail: "2 of 10 pages skip heading levels or have long copy with no H2 sections (/features, /security).", fix: "Structure each page as H1 (page topic), H2 per section phrased as the question or benefit it covers, and H3 for details, without skipping levels. AI systems split pages into passages along these headings.", pages: [u("/features"), u("/security")] }),
+  V({ id: "page_speed", group: "performance", label: "Fast page response", status: "fail", severity: "high", detail: "2 of 10 pages took over 2.5s to deliver HTML (slowest /blog/revenue-forecasting-guide: 5.4s).", fix: "Cache HTML at the edge (CDN), reduce server work per request and pre-render marketing pages statically.", pages: [u("/features"), u("/blog/revenue-forecasting-guide")] }),
+  V({ id: "page_weight", group: "performance", label: "Lean HTML", status: "warn", severity: "low", detail: "1 of 10 pages exceeds 500 KB of HTML (largest 627 KB). Crawlers may truncate very large documents.", fix: "Move inline data, SVG sprites and scripts out of the HTML and lazy-load below-the-fold content.", pages: [u("/features")] }),
+];
+
+const sampleSubScores = visibilitySubScores(sampleChecks);
+export const sampleVisibility: VisibilityReport = {
+  score: visibilityScore(sampleSubScores),
+  subScores: sampleSubScores,
+  checks: sampleChecks,
+  bots: [
+    { name: "ClaudeBot", engine: "Claude", allowed: true, rule: "User-agent: * / Allow: /" },
+    { name: "GPTBot", engine: "ChatGPT", allowed: false, rule: "User-agent: GPTBot / Disallow: /" },
+    { name: "OAI-SearchBot", engine: "ChatGPT search", allowed: true, rule: "User-agent: * / Allow: /" },
+    { name: "PerplexityBot", engine: "Perplexity", allowed: true, rule: "User-agent: * / Allow: /" },
+    { name: "Google-Extended", engine: "Gemini", allowed: true, rule: "User-agent: * / Allow: /" },
+    { name: "CCBot", engine: "Common Crawl", allowed: false, rule: "User-agent: CCBot / Disallow: /" },
+    { name: "Googlebot", engine: "Google Search", allowed: true, rule: "User-agent: * / Allow: /" },
+    { name: "Bingbot", engine: "Bing", allowed: true, rule: "User-agent: * / Allow: /" },
+  ],
+  pages: samplePages.map(({ path, ...p }) => ({
+    ...p,
+    url: u(path),
+    status: 200,
+    issues: sampleChecks.filter((c) => c.status !== "pass" && c.pages.includes(u(path))).map((c) => c.id),
+  })),
+  files: { robotsTxt: true, sitemap: true, llmsTxt: false },
+  origin: ORIGIN,
+  crawledAt: "2026-10-01T09:00:00.000Z",
+};
+
+const sampleReport = (assets: { id: string; label: string; width: number | null; height: number | null }[]) => ({
+  ...finalizeReport(core, assets.map((a) => ({ assetId: a.id, label: a.label, width: a.width ?? 1440, height: a.height ?? 900 })), "claude"),
+  visibility: sampleVisibility,
+  sampleVersion: SAMPLE_VERSION,
+});
+
 export async function ensureSample() {
   const existing = await prisma.audit.findUnique({ where: { shareToken: SAMPLE_TOKEN } });
-  if (existing) return existing;
+  if (existing) {
+    const stored = existing.report ? (JSON.parse(existing.report) as { sampleVersion?: number }) : null;
+    if (stored?.sampleVersion === SAMPLE_VERSION) return existing;
+    // Older sample: rebuild the report in place, keeping its screenshots and share link.
+    const assets = await prisma.asset.findMany({ where: { auditId: existing.id, kind: "screenshot" }, orderBy: { order: "asc" } });
+    const report = sampleReport(assets);
+    return prisma.audit.update({ where: { id: existing.id }, data: { report: JSON.stringify(report), growthScore: report.growthScore } });
+  }
   const user = await prisma.user.upsert({
     where: { email: SAMPLE_EMAIL },
     update: {},
@@ -177,7 +273,7 @@ export async function ensureSample() {
       }),
     );
   }
-  const report = finalizeReport(core, assets.map((a) => ({ assetId: a.id, label: a.label, width: a.width!, height: a.height! })), "claude");
+  const report = sampleReport(assets);
   return prisma.audit.update({
     where: { id: audit.id },
     data: { status: "complete", stage: 5, report: JSON.stringify(report), growthScore: report.growthScore, engine: "sample", completedAt: new Date(), shareToken: SAMPLE_TOKEN, secretsPurgedAt: new Date() },
