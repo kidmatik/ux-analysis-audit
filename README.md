@@ -55,7 +55,7 @@ The app needs a long-running Node server with Chromium and a persistent disk (SQ
 ## Plans
 
 - **Free**: the first scan only, shown as a teaser report (score, sub-scores, top 3 issues with their annotated screens, finding titles). Fixes, full finding detail, the action plan and exports are removed on the server before the page renders.
-- **Pro, $39/month**: unlimited scans and the full report, including the action plan, PDF, Notion export and every annotated screen.
+- **Pro, $39/month**: unlimited scans and the full report, including the action plan, PDF, Notion export, every annotated screen and One-click Redesign.
 
 Gating lives in `lib/gate.ts`; pricing copy in `lib/config.ts`.
 
@@ -68,6 +68,16 @@ Gating lives in `lib/gate.ts`; pricing copy in `lib/config.ts`.
 3. **Analysis**: `lib/engine/claude.ts` sends every screenshot plus the detected element boxes and page signals to Claude and receives a typed report (`lib/report.ts`), each finding pinned to a box on a screenshot. If no key is set or the call fails, `lib/engine/heuristic.ts` produces the report from the captured DOM signals.
 4. **Scoring and plan**: the Growth Readiness Score is the weighted average of six sub-scores (value proposition 22%, onboarding 20%, conversion 18%, cognitive load 14%, hierarchy 13%, trust 13%). The action plan is derived from each finding's impact and effort.
 
+## One-click Redesign (Pro)
+
+The report's Redesign tab rebuilds the audited page with the report's fixes applied. `POST /api/audits/:id/redesign` starts `runRedesign` (`lib/engine/redesign.ts`) and the tab polls `GET` on the same route.
+
+1. **Capture**: loads the live page, reads its current type, colors and buttons, and saves a "before" screenshot.
+2. **Plan**: Claude returns a typed plan (`lib/redesign.ts`): copy rewrites (outcome-led headline, one-line subheadline, verb-plus-object CTAs, benefit section headings), a CTA hierarchy (one primary, one quiet secondary, the rest removed from the hero), a styleguide (Google Fonts, an AA-contrast palette built on the brand color, a type scale, radius, spacing, voice rules) and a change log tied to finding ids. Without a key, `heuristicPlan` derives the same structure from the page and findings.
+3. **Apply**: the plan is applied to the live DOM (fonts, type scale, CTA styling, copy), then an "after" screenshot and a script-free HTML copy are saved. The copy is served with a sandboxing CSP.
+
+The tab shows a before/after slider with numbered markers on changed copy, every copy change, the styleguide with a live hero specimen and a CSS tokens download, and the change log. Free users see an example and an upgrade prompt. Without a public URL or Chromium, the tab still shows the copy and styleguide.
+
 ## Exports
 
 - PDF: `GET /api/audits/:id/pdf` (annotated screenshots next to each finding, Matan.Design footer on every page)
@@ -76,7 +86,9 @@ Gating lives in `lib/gate.ts`; pricing copy in `lib/config.ts`.
 
 ## Sample report
 
-`/sample` shows a full report for a fictional product, "Acme Insights". The pages live in `scripts/sample-site`; `node scripts/capture-sample.mjs` regenerates the screenshots in `public/sample`. The report content is in `lib/sample.ts`.
+`/sample` shows a full report for a fictional product, "Acme Insights". The pages live in `scripts/sample-site`; `node scripts/capture-sample.mjs` regenerates the screenshots in `public/sample`. The report content is in `lib/sample.ts`; its redesign plan is in `lib/sample-redesign.ts`, and `npx tsx scripts/capture-sample-redesign.mts` regenerates `public/sample/redesign-*`.
+
+The static preview on GitHub Pages (`gh-pages` branch) is refreshed with `node scripts/export-preview.mjs <gh-pages checkout>` against a running app; see the comment at the top of the script.
 
 ## Smoke test
 

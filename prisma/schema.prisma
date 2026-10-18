@@ -44,6 +44,8 @@ model Audit {
   growthScore     Int?
   report          String?
   shareToken      String?   @unique
+  // JSON-encoded One-click Redesign (lib/redesign.ts RedesignRecord)
+  redesign        String?
   createdAt       DateTime  @default(now())
   startedAt       DateTime  @default(now())
   completedAt     DateTime?
@@ -55,9 +57,9 @@ model Asset {
   id        String   @id @default(cuid())
   auditId   String
   audit     Audit    @relation(fields: [auditId], references: [id], onDelete: Cascade)
-  kind      String   // screenshot | video | frame
+  kind      String   // screenshot | video | frame | redesign | redesign_html
   label     String
-  source    String   // capture | upload | recording | figma
+  source    String   // capture | upload | recording | figma | redesign
   path      String
   mimeType  String
   width     Int?

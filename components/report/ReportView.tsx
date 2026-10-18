@@ -8,6 +8,7 @@ import { CrawledPages } from "./CrawledPages";
 import { Insights } from "./Insights";
 import { IssuesPanel } from "./IssuesPanel";
 import { ReportTabs } from "./ReportTabs";
+import { Redesign } from "./Redesign";
 import { Statistics } from "./Statistics";
 import { AiHealthCard, BotAccessCard } from "./VisibilityParts";
 import { LeadCta } from "./LeadCta";
@@ -17,6 +18,7 @@ import { labelFor, PRIMARY_GOALS, PRODUCT_TYPES } from "@/lib/config";
 import { SUB_SCORES, scoreBand } from "@/lib/report";
 import { overallScore } from "@/lib/visibility";
 import type { ViewReport } from "@/lib/gate";
+import type { RedesignView } from "@/lib/redesign";
 
 type AuditMeta = {
   id: string;
@@ -39,11 +41,13 @@ const barColor = (n: number) => (n >= 80 ? "bg-good" : n >= 60 ? "bg-high" : "bg
 export function ReportView({
   audit,
   report,
+  redesign = null,
   mode,
   shareToken,
 }: {
   audit: AuditMeta;
   report: ViewReport;
+  redesign?: RedesignView | null;
   mode: "owner" | "shared" | "sample";
   shareToken?: string;
 }) {
@@ -52,6 +56,8 @@ export function ReportView({
   const v = report.visibility ?? null;
   const overall = overallScore(report.growthScore, v?.score);
   const issueCount = report.findings.length + (v ? v.checks.filter((c) => c.status !== "pass").length : 0);
+  // Owners always see the Redesign tab (start it, or the Pro teaser); shared links only when one exists.
+  const showRedesign = mode === "owner" || redesign?.status === "complete";
   const bandCls = band.tone === "good" ? "bg-good/10 text-good" : band.tone === "warn" ? "bg-high/10 text-high" : "bg-critical/10 text-critical";
 
   return (
@@ -86,6 +92,7 @@ export function ReportView({
         <ReportTabs
           tabs={[
             { id: "overview", label: "Overview" },
+            ...(showRedesign ? [{ id: "redesign", label: "Redesign", badge: "New" }] : []),
             { id: "issues", label: "Issues", count: issueCount },
             { id: "pages", label: "Crawled Pages", count: v ? v.pages.length : report.screenshots.length },
             { id: "statistics", label: "Statistics" },
@@ -95,6 +102,7 @@ export function ReportView({
             overview: (
               <>
                 <PillarSummary overall={overall} ux={report.growthScore} visibility={v?.score ?? null} />
+                {showRedesign && <RedesignBanner productName={audit.productName} ready={redesign?.status === "complete"} projected={redesign?.plan?.projectedScore} />}
       {/* Overview */}
       <section className="rounded-3xl border border-line bg-white p-5 sm:p-10 shadow-[0_10px_40px_rgb(14_19_37/0.06)]">
         <div className="grid lg:grid-cols-[auto_1fr] gap-8 lg:gap-14 items-center">
@@ -198,6 +206,17 @@ export function ReportView({
                 )}
               </>
             ),
+            redesign: (
+              <Redesign
+                auditId={audit.id}
+                productName={audit.productName}
+                initial={redesign}
+                mode={mode}
+                locked={report.locked}
+                currentScore={report.growthScore}
+                findingTitles={Object.fromEntries(report.findings.map((f) => [f.id, f.title]))}
+              />
+            ),
             issues: <IssuesPanel findings={report.findings} screenshots={report.screenshots} visibility={v} />,
             pages: <CrawledPages report={report} />,
             statistics: <Statistics report={report} />,
@@ -226,6 +245,21 @@ export function ReportView({
         </p>
       )}
     </article>
+  );
+}
+
+function RedesignBanner({ productName, ready, projected }: { productName: string; ready: boolean; projected?: number }) {
+  return (
+    <a href="#redesign" className="group mb-6 flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl bg-gradient-to-r from-accent to-[#7a3cff] p-5 sm:p-6 text-white shadow-[0_14px_34px_-14px_rgb(91_69_255/0.8)] transition-transform hover:-translate-y-0.5 no-print">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15">
+        <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zm7 11l.9 2.6 2.6.9-2.6.9L19 20l-.9-2.6-2.6-.9 2.6-.9L19 13z" /></svg>
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-lg font-bold">{ready ? `${productName}, redesigned with every fix applied` : `See ${productName} redesigned in one click`}</span>
+        <span className="block text-white/80">{ready ? `Before and after, rewritten copy and a new styleguide${projected ? `. Projected UX score ${projected}` : ""}.` : "Rewritten headline and CTAs, a new styleguide and a before and after of your page."}</span>
+      </span>
+      <span className="shrink-0 rounded-xl bg-white px-4 py-2.5 text-sm font-bold text-accent transition-transform group-hover:translate-x-0.5">{ready ? "View redesign →" : "Open Redesign →"}</span>
+    </a>
   );
 }
 

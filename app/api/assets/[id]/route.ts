@@ -15,7 +15,12 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   }
   if (!allowed) return new NextResponse("Not found", { status: 404 });
   const data = await readStored(asset.path);
-  return new NextResponse(new Uint8Array(data), {
-    headers: { "Content-Type": asset.mimeType, "Cache-Control": "private, max-age=3600" },
-  });
+  const headers: Record<string, string> = { "Content-Type": asset.mimeType, "Cache-Control": "private, max-age=3600", "X-Content-Type-Options": "nosniff" };
+  if (asset.mimeType === "text/html") {
+    // Redesigned copies of third-party pages: no scripts, opaque origin, never same-origin with the app.
+    headers["Content-Security-Policy"] = "sandbox allow-popups allow-popups-to-escape-sandbox; script-src 'none'; object-src 'none'";
+    headers["Content-Type"] = "text/html; charset=utf-8";
+    if (new URL(req.url).searchParams.has("download")) headers["Content-Disposition"] = `attachment; filename="redesigned-page.html"`;
+  }
+  return new NextResponse(new Uint8Array(data), { headers });
 }

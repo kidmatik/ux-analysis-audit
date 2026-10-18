@@ -1,7 +1,7 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type TabDef = { id: string; label: string; count?: number };
+export type TabDef = { id: string; label: string; count?: number; badge?: string };
 
 // Report tabs. Panels are rendered on the server and toggled here; the active tab lives in
 // the URL hash so links like #issues or #finding-F3 open the right tab.
@@ -65,6 +65,9 @@ export function ReportTabs({ tabs, panels }: { tabs: TabDef[]; panels: Record<st
                 }`}
               >
                 {t.label}
+                {t.badge && (
+                  <span className="ml-2 rounded-full bg-gradient-to-r from-accent to-[#7a3cff] px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">{t.badge}</span>
+                )}
                 {t.count != null && (
                   <span className={`ml-2 rounded-full px-2 py-0.5 text-xs tabular-nums ${on ? "bg-accent text-white" : "bg-surface-2 text-muted"}`}>{t.count}</span>
                 )}
