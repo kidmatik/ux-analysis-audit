@@ -34,7 +34,7 @@ const STEPS = [
 export default async function Landing() {
   const user = await currentUser();
   return (
-    <>
+    <div className="theme-orange">
       <SiteHeader />
       <main>
         {/* Hero */}
@@ -162,7 +162,7 @@ export default async function Landing() {
 
         {/* Final CTA */}
         <section className="mx-auto max-w-6xl px-6">
-          <Reveal className="rounded-3xl bg-gradient-to-br from-accent to-[#7a3cff] px-6 py-12 sm:px-8 sm:py-16 md:px-16 text-center text-white">
+          <Reveal className="rounded-3xl bg-gradient-to-br from-accent to-[#ff7a2e] px-6 py-12 sm:px-8 sm:py-16 md:px-16 text-center text-white">
             <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">See what’s holding your product back</h2>
             <p className="mx-auto mt-4 max-w-xl text-lg text-white/80">Your first audit is free and takes about two minutes.</p>
             <div className="mx-auto mt-9 max-w-xl text-left">
@@ -172,7 +172,7 @@ export default async function Landing() {
           </Reveal>
         </section>
       </main>
-    </>
+    </div>
   );
 }
 

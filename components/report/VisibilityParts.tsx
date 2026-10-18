@@ -19,7 +19,7 @@ export function HealthGauge({ score, target = 80, size = 260 }: { score: number;
     <div className="relative mx-auto" style={{ width: size, height: size / 2 + stroke / 2 }}>
       <svg width={size} height={size / 2 + stroke / 2} viewBox={`0 0 ${size} ${size / 2 + stroke / 2}`} role="img" aria-label={`Score ${score} of 100, target ${target}`}>
         <path d={arc} fill="none" stroke="var(--color-surface-2)" strokeWidth={stroke} strokeLinecap="round" />
-        <path d={arc} fill="none" stroke="rgb(91 69 255 / 0.16)" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${(len * target) / 100} ${len}`} />
+        <path d={arc} fill="none" stroke="color-mix(in srgb, var(--color-accent) 16%, transparent)" strokeWidth={stroke} strokeLinecap="round" strokeDasharray={`${(len * target) / 100} ${len}`} />
         <path
           d={arc}
           fill="none"

@@ -62,7 +62,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, rgb(91 69 255 / 0.25), transparent);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-accent) 25%, transparent), transparent);
   animation: shimmer 1.4s infinite;
 }
 
@@ -70,9 +70,15 @@ body {
   .no-print { display: none !important; }
 }
 
+/* The landing page uses the brand orange as its accent instead of purple. */
+body:has(.theme-orange) {
+  --color-accent: #f04a0f;
+  --color-accent-strong: #c93a08;
+}
+
 .hero-glow {
   background:
-    radial-gradient(600px 300px at 15% 10%, rgb(91 69 255 / 0.12), transparent 70%),
+    radial-gradient(600px 300px at 15% 10%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 70%),
     radial-gradient(500px 280px at 85% 0%, rgb(255 90 31 / 0.10), transparent 70%),
     radial-gradient(700px 300px at 50% 100%, rgb(47 124 255 / 0.08), transparent 70%);
 }
