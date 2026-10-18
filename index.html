@@ -1,0 +1,166 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><style>body{margin:0}img{max-width:100%}</style>
+<title>UX Analysis Audit Preview</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: a launcher for the live preview. One wide landing card, a row of reports, then the app flow in order. */
+:root {
+  --bg: #ffffff;
+  --surface: #f5f6fb;
+  --line: #e4e6f0;
+  --fg: #0e1325;
+  --muted: #4d566e;
+  --subtle: #848ca2;
+  --accent: #5b45ff;
+  --accent-ink: #ffffff;
+  --cta: #ff5a1f;
+  --good: #0f9f6e;
+  --shadow: 0 1px 2px rgb(14 19 37 / 0.05), 0 12px 32px rgb(14 19 37 / 0.06);
+  --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c0f1c; --surface: #141829; --line: #262b40; --fg: #eef0f8; --muted: #b3b9cc; --subtle: #8188a0;
+    --accent: #8b7bff; --accent-ink: #0c0f1c; --cta: #ff7a45; --good: #34d399;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c0f1c; --surface: #141829; --line: #262b40; --fg: #eef0f8; --muted: #b3b9cc; --subtle: #8188a0;
+  --accent: #8b7bff; --accent-ink: #0c0f1c; --cta: #ff7a45; --good: #34d399;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.55; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 40px 64px; display: grid; gap: 48px; }
+header { display: grid; gap: 14px; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+.mark { position: relative; width: 28px; height: 28px; border-radius: 8px; background: var(--accent); display: grid; place-items: center; }
+.mark::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: #fff; }
+.mark::after { content: ""; position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 50%; background: var(--cta); border: 2px solid var(--bg); }
+h1 { margin: 0; font-size: clamp(30px, 5vw, 46px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 800; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.lede { margin: 0; max-width: 62ch; color: var(--muted); font-size: 17px; }
+.note { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--muted); font-size: 14px; max-width: 760px; }
+.note b { color: var(--fg); font-weight: 600; }
+.note a { color: var(--accent); font-weight: 600; }
+.dot { flex: none; width: 8px; height: 8px; margin-top: 7px; border-radius: 50%; background: var(--good); box-shadow: 0 0 0 4px color-mix(in srgb, var(--good) 20%, transparent); }
+section { display: grid; gap: 18px; }
+.label { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+h2 { margin: 0; font-size: 22px; letter-spacing: -0.015em; }
+.grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.card { display: grid; grid-template-rows: auto 1fr; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--bg); color: inherit; text-decoration: none; box-shadow: var(--shadow); transition: transform 0.2s ease, border-color 0.2s ease; }
+.card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.card:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.shot { aspect-ratio: 16 / 10; max-width: 100%; background: var(--surface); border-bottom: 1px solid var(--line); overflow: hidden; }
+.shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; transition: transform 0.5s ease; }
+.card:hover .shot img { transform: scale(1.02); }
+.body { display: grid; gap: 6px; align-content: start; padding: 16px 18px 18px; min-width: 0; }
+.title { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: 17px; }
+.step { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.desc { margin: 0; color: var(--muted); font-size: 14px; }
+.tag { justify-self: start; margin-top: 4px; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); }
+.tag.free { background: color-mix(in srgb, var(--cta) 14%, transparent); color: var(--cta); }
+.hero-card { grid-template-columns: 1.5fr 1fr; grid-template-rows: none; }
+.hero-card .shot { border-bottom: 0; border-right: 1px solid var(--line); }
+.hero-card .body { align-content: center; padding: 24px; gap: 10px; }
+.hero-card .title { font-size: 22px; }
+.open { justify-self: start; margin-top: 6px; padding: 10px 16px; border-radius: 10px; background: var(--cta); color: #fff; font-weight: 600; font-size: 15px; }
+footer { color: var(--subtle); font-size: 13px; }
+footer b { color: var(--fg); font-weight: 600; }
+@media (max-width: 760px) {
+  .hero-card { grid-template-columns: 1fr; }
+  .hero-card .shot { border-right: 0; border-bottom: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) { .card, .shot img { transition: none; } }
+</style></head><body>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="mark" aria-hidden="true"></span>UX Analysis Audit</div>
+    <h1>Preview the app, the report and the <span>landing page</span></h1>
+    <p class="lede">Every screen below is the real app, rendered from the latest build and fully clickable: report tabs, issue filters, “How to fix it” panels, Insights checklists and animations all work.</p>
+    <p class="note"><span class="dot" aria-hidden="true"></span><span><b>This preview has no server behind it.</b> Sign-up, new scans and payments are simulated, so any URL you enter leads to the example audit. To run real audits, deploy the repo on Render: <a href="https://github.com/kidmatik/ux-analysis-audit" target="_blank" rel="noopener">github.com/kidmatik/ux-analysis-audit</a></span></p>
+  </header>
+
+  <section aria-labelledby="s-landing">
+    <p class="label">Marketing site</p>
+    <a class="card hero-card" href="landing.html">
+      <div class="shot"><img src="thumbs/landing.jpg" alt="Landing page with a centered URL field"></div>
+      <div class="body">
+        <span class="title" id="s-landing">Landing page</span>
+        <p class="desc">Centered URL field, the two audit pillars, animated KPI cards, benchmarks, stat cards with annotated screenshots, and pricing.</p>
+        <span class="open">Open landing page</span>
+      </div>
+    </a>
+  </section>
+
+  <section aria-labelledby="s-reports">
+    <p class="label">Reports</p>
+    <h2 id="s-reports">The audit report</h2>
+    <div class="grid">
+      <a class="card" href="report.html">
+        <div class="shot"><img src="thumbs/report.jpg" alt="Sample report overview tab" loading="lazy"></div>
+        <div class="body">
+          <span class="title">Sample report</span>
+          <p class="desc">Acme Insights with every tab: Overview, Issues, Crawled Pages, Statistics and Insights, across UX & UI and AI & search.</p>
+          <span class="tag">Pro · full report</span>
+        </div>
+      </a>
+      <a class="card" href="teaser.html">
+        <div class="shot"><img src="thumbs/teaser.jpg" alt="Free teaser report" loading="lazy"></div>
+        <div class="body">
+          <span class="title">Free first scan</span>
+          <p class="desc">What a new user sees after their free scan: scores, top issues and locked fixes with an upgrade prompt.</p>
+          <span class="tag free">Free · teaser</span>
+        </div>
+      </a>
+      <a class="card" href="full-report.html">
+        <div class="shot"><img src="thumbs/full-report.jpg" alt="The same scan after upgrading" loading="lazy"></div>
+        <div class="body">
+          <span class="title">Same scan, unlocked</span>
+          <p class="desc">The scan above after going Pro: every fix, the SEO & GEO checklist and the Insights plan.</p>
+          <span class="tag">Pro · $39/month</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <section aria-labelledby="s-flow">
+    <p class="label">App flow</p>
+    <h2 id="s-flow">From sign-up to report, in order</h2>
+    <div class="grid">
+      <a class="card" href="signup.html">
+        <div class="shot"><img src="thumbs/signup.jpg" alt="Sign up page" loading="lazy"></div>
+        <div class="body"><span class="title"><span class="step">1</span>Sign up</span><p class="desc">Google or email. Continuing opens the dashboard.</p></div>
+      </a>
+      <a class="card" href="dashboard.html">
+        <div class="shot"><img src="thumbs/dashboard.jpg" alt="Dashboard with an audit card" loading="lazy"></div>
+        <div class="body"><span class="title"><span class="step">2</span>Dashboard</span><p class="desc">Your audits with their scores. Start a new audit from here.</p></div>
+      </a>
+      <a class="card" href="wizard.html">
+        <div class="shot"><img src="thumbs/wizard.jpg" alt="New audit wizard" loading="lazy"></div>
+        <div class="body"><span class="title"><span class="step">3</span>New audit</span><p class="desc">Three steps: product, access method (URL, demo login, Figma, recording, upload) and focus areas.</p></div>
+      </a>
+      <a class="card" href="processing.html">
+        <div class="shot"><img src="thumbs/processing.jpg" alt="Audit in progress" loading="lazy"></div>
+        <div class="body"><span class="title"><span class="step">4</span>Processing</span><p class="desc">The five analysis stages, then the report opens on its own.</p></div>
+      </a>
+      <a class="card" href="upgrade.html">
+        <div class="shot"><img src="thumbs/upgrade.jpg" alt="Upgrade to Pro" loading="lazy"></div>
+        <div class="body"><span class="title"><span class="step">5</span>Upgrade</span><p class="desc">Pro at $39 a month for unlimited scans and full reports.</p></div>
+      </a>
+      <a class="card" href="login.html">
+        <div class="shot"><img src="thumbs/login.jpg" alt="Sign in page" loading="lazy"></div>
+        <div class="body"><span class="title"><span class="step">6</span>Sign in</span><p class="desc">Returning users sign in and land on their dashboard.</p></div>
+      </a>
+    </div>
+  </section>
+
+  <footer>Powered by <b>Matan.Design</b></footer>
+</div>
+</body></html>
