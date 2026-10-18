@@ -13,7 +13,7 @@
   --fg: #0e1325;
   --muted: #4d566e;
   --subtle: #848ca2;
-  --accent: #e0440c;
+  --accent: #5b45ff;
   --accent-ink: #ffffff;
   --cta: #ff5a1f;
   --good: #0f9f6e;
@@ -23,14 +23,14 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0c0f1c; --surface: #141829; --line: #262b40; --fg: #eef0f8; --muted: #b3b9cc; --subtle: #8188a0;
-    --accent: #ff7a45; --accent-ink: #0c0f1c; --cta: #ff7a45; --good: #34d399;
+    --accent: #8b7bff; --accent-ink: #0c0f1c; --cta: #ff7a45; --good: #34d399;
     --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0c0f1c; --surface: #141829; --line: #262b40; --fg: #eef0f8; --muted: #b3b9cc; --subtle: #8188a0;
-  --accent: #ff7a45; --accent-ink: #0c0f1c; --cta: #ff7a45; --good: #34d399;
+  --accent: #8b7bff; --accent-ink: #0c0f1c; --cta: #ff7a45; --good: #34d399;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.35);
   color-scheme: dark;
 }
@@ -99,6 +99,19 @@ footer b { color: var(--fg); font-weight: 600; }
     </a>
   </section>
 
+  <section aria-labelledby="s-redesign">
+    <p class="label">New</p>
+    <h2 id="s-redesign">One-click Redesign</h2>
+    <a class="card hero-card" href="report.html#redesign">
+      <div class="shot"><img src="thumbs/redesign.jpg" alt="Before and after of a page redesigned from its audit" loading="lazy"></div>
+      <div class="body">
+        <span class="title">Your page, with every fix applied</span>
+        <p class="desc">Rebuilds the audited page from the report: an outcome-led headline, rewritten CTAs and section headings, one clear primary action and a new styleguide. Drag the before/after slider, then open the redesigned page or download the CSS tokens. In the unlocked scan below, press “Redesign my page in one click” to watch it run.</p>
+        <span class="tag">Pro · new</span>
+      </div>
+    </a>
+  </section>
+
   <section aria-labelledby="s-reports">
     <p class="label">Reports</p>
     <h2 id="s-reports">The audit report</h2>
@@ -107,7 +120,7 @@ footer b { color: var(--fg); font-weight: 600; }
         <div class="shot"><img src="thumbs/report.jpg" alt="Sample report overview tab" loading="lazy"></div>
         <div class="body">
           <span class="title">Sample report</span>
-          <p class="desc">Acme Insights with every tab: Overview, Issues, Crawled Pages, Statistics and Insights, across UX & UI and AI & search.</p>
+          <p class="desc">Acme Insights with every tab: Overview, Redesign, Issues, Crawled Pages, Statistics and Insights, across UX & UI and AI & search.</p>
           <span class="tag">Pro · full report</span>
         </div>
       </a>
@@ -123,7 +136,7 @@ footer b { color: var(--fg); font-weight: 600; }
         <div class="shot"><img src="thumbs/full-report.jpg" alt="The same scan after upgrading" loading="lazy"></div>
         <div class="body">
           <span class="title">Same scan, unlocked</span>
-          <p class="desc">The scan above after going Pro: every fix, the SEO & GEO checklist and the Insights plan.</p>
+          <p class="desc">The scan above after going Pro: every fix, the SEO & GEO checklist, the Insights plan and the One-click Redesign button.</p>
           <span class="tag">Pro · $39/month</span>
         </div>
       </a>
