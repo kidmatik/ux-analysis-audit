@@ -16,8 +16,6 @@ services:
         generateValue: true
       - key: CREDENTIALS_ENCRYPTION_KEY
         generateValue: true
-      - key: NEXTAUTH_URL
-        sync: false # set to the service URL, e.g. https://ux-analysis-audit.onrender.com
       - key: ALLOW_DEMO_UPGRADE
         value: "true"
       - key: ANTHROPIC_API_KEY

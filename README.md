@@ -30,7 +30,7 @@ Live URL and demo-account capture need a Chromium binary. Set `CHROMIUM_PATH`, o
 
 The app needs a long-running Node server with Chromium and a persistent disk (SQLite plus captured screens), so use a container host rather than serverless.
 
-- **Render**: push this repo to GitHub, then New, Blueprint, and pick the repo. `render.yaml` builds the `Dockerfile` on the free plan and generates the secrets (free instances sleep when idle and reset their data on restart; switch to `starter` and enable the disk for production). Set `NEXTAUTH_URL` to the service URL once it exists.
+- **Render**: push this repo to GitHub, then New, Blueprint, and pick the repo. `render.yaml` builds the `Dockerfile` on the free plan and generates the secrets (free instances sleep when idle and reset their data on restart; switch to `starter` and enable the disk for production).
 - **Railway / Fly.io / any Docker host**: build the `Dockerfile`, mount a volume at `/data`, and set `NEXTAUTH_URL`, `NEXTAUTH_SECRET` and `CREDENTIALS_ENCRYPTION_KEY`.
 
 `ALLOW_DEMO_UPGRADE=true` lets testers try Pro without Stripe; remove it once Stripe keys are set.

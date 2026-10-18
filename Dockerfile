@@ -21,4 +21,5 @@ ENV NODE_ENV=production \
     STORAGE_DIR=/data/uploads
 
 EXPOSE 3000
-CMD ["sh", "-c", "mkdir -p /data/uploads && npx prisma db push --skip-generate && npx next start -p ${PORT}"]
+# NEXTAUTH_URL falls back to the URL Render assigns, so no manual step is needed there.
+CMD ["sh", "-c", "export NEXTAUTH_URL=${NEXTAUTH_URL:-$RENDER_EXTERNAL_URL}; mkdir -p /data/uploads && npx prisma db push --skip-generate && npx next start -p ${PORT}"]
