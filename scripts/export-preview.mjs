@@ -13,10 +13,10 @@ const BASE = process.env.BASE_URL || "http://localhost:3000";
 const SITE = "http://localhost:8090/index.html";
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || "/opt/pw-browsers/chromium-1194/chrome-linux/chrome", args: ["--no-sandbox"] });
 
-function inject(page, extra = "") {
+function inject(page, extra = "", submit = "") {
   return `<script>
 (function(){
-  var PAGE="${page}", SUBMIT="";
+  var PAGE="${page}", SUBMIT="${submit}";
   function go(href){ window.location.href = new URL(href, window.location.href).href; }
   function toast(msg){
     var t=document.createElement("div"); t.textContent=msg;
@@ -36,18 +36,21 @@ function inject(page, extra = "") {
       if(/\\.pdf$/.test(h)){ window.open(h,"_blank"); return; }
       go(h); return;
     }
+    if(/^Start Audit/.test(text)){ e.preventDefault(); e.stopImmediatePropagation(); go("processing.html"); return; }
     if(/^Go Pro/.test(text)){ e.preventDefault(); e.stopImmediatePropagation(); go(/redesign/i.test(text)?"full-report.html#redesign":"full-report.html"); return; }
     if(/^(Share link|Export to Notion|Continue with Google|Sign out|Downgrade)/.test(text)){ e.preventDefault(); e.stopImmediatePropagation(); toast("\\u201c"+text+"\\u201d works in the deployed app."); }
   }, true);
   window.addEventListener("submit", function(e){
     e.preventDefault(); e.stopImmediatePropagation();
-    toast("Thanks. In the deployed app this request is saved and sent.");
+    if(SUBMIT){ go(SUBMIT); } else { toast("Thanks. In the deployed app this request is saved and sent."); }
   }, true);
+  if(PAGE==="processing"){ setTimeout(function(){ go("teaser.html"); }, 9000); }
   ${extra}
   // The preview has no API; quietly answer the calls the pages make so nothing errors.
   var json=function(v){ return Promise.resolve(new Response(JSON.stringify(v),{headers:{"content-type":"application/json"}})); };
   var f=window.fetch; window.fetch=function(u,o){
     var s=String(u&&u.url||u);
+    if(/\\/api\\/audits\\/[^/]+$/.test(s)){ var k=(window.__stage=(window.__stage||0)+1); return json({status:k>3?"complete":"processing",stage:Math.min(4,k)}); }
     if(/\\/redesign$/.test(s) && window.__REDESIGN){
       // Simulates a redesign run: a few progress polls, then the finished redesign.
       if(o&&o.method==="POST"){ window.__rs=0; return json({status:"processing",stage:0,startedAt:new Date().toISOString()}); }
@@ -84,8 +87,8 @@ function rewrite(html) {
 
 const fetchHtml = async (ctx, url) => (await ctx.request.get(url)).text();
 
-async function save(ctx, name, html, page, extra = "", token = "") {
-  let out = rewrite(html).replace("<head>", "<head>" + inject(page, rewrite(extra)));
+async function save(ctx, name, html, page, extra = "", token = "", submit = "") {
+  let out = rewrite(html).replace("<head>", "<head>" + inject(page, rewrite(extra), submit));
   for (const id of assets.keys()) {
     const file = fs.readdirSync(path.join(OUT, "assets")).find((f) => f.startsWith(id + "."));
     let ext = file?.split(".").pop();
@@ -120,10 +123,13 @@ for (const dir of ["chunks", "css"]) {
   }
 }
 
-// Sample report (anonymous)
+// Public pages and the sample report (anonymous)
 const anon = await browser.newContext();
 await anon.request.get(`${BASE}/sample`);
 await save(anon, "report.html", await fetchHtml(anon, `${BASE}/r/sample`), "report", "", "sample");
+await save(anon, "landing.html", await fetchHtml(anon, `${BASE}/`), "landing", "", "", "signup.html");
+await save(anon, "login.html", await fetchHtml(anon, `${BASE}/login`), "login", "", "", "dashboard.html");
+await save(anon, "signup.html", await fetchHtml(anon, `${BASE}/signup`), "signup", "", "", "dashboard.html");
 
 // Free teaser, then Pro with a clickable redesign
 const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -134,15 +140,20 @@ await page.fill("input[name=email]", `preview${Date.now()}@example.com`);
 await page.fill("input[name=password]", "password123");
 await page.click("button[type=submit]");
 await page.waitForURL("**/audits/new");
+await save(ctx, "wizard.html", await fetchHtml(ctx, `${BASE}/audits/new`), "wizard");
 await page.fill("input[placeholder='Acme Analytics']", "Acme Insights");
 await page.fill("input[placeholder='https://acme.com']", SITE);
 await page.selectOption("select >> nth=0", "saas_app");
 await page.click("text=Continue");
 await page.click("text=Continue");
 await page.click("text=Start Audit");
+await page.waitForURL("**/processing");
+await save(ctx, "processing.html", await fetchHtml(ctx, page.url()), "processing");
 await page.waitForURL(/\/audits\/c[^/]+$/, { timeout: 180000 });
 const reportUrl = page.url().split("#")[0];
 await save(ctx, "teaser.html", await fetchHtml(ctx, reportUrl), "teaser");
+await save(ctx, "dashboard.html", (await fetchHtml(ctx, `${BASE}/dashboard`)).replaceAll(new URL(reportUrl).pathname, "teaser.html"), "dashboard");
+await save(ctx, "upgrade.html", await fetchHtml(ctx, `${BASE}/upgrade`), "upgrade");
 await page.goto(`${BASE}/upgrade`);
 await page.click("text=Go Pro, $39/month");
 await page.waitForURL("**/dashboard?upgraded=1");
