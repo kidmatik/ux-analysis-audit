@@ -1,0 +1,28 @@
+# One-click deploy on Render (Blueprint). The free plan works for testing: the service sleeps
+# when idle and the SQLite data in /data resets on restart. For production, switch to
+# plan: starter and uncomment the disk so accounts and reports persist.
+services:
+  - type: web
+    name: ux-analysis-audit
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    # disk:
+    #   name: data
+    #   mountPath: /data
+    #   sizeGB: 1
+    envVars:
+      - key: NEXTAUTH_SECRET
+        generateValue: true
+      - key: CREDENTIALS_ENCRYPTION_KEY
+        generateValue: true
+      - key: NEXTAUTH_URL
+        sync: false # set to the service URL, e.g. https://ux-analysis-audit.onrender.com
+      - key: ALLOW_DEMO_UPGRADE
+        value: "true"
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

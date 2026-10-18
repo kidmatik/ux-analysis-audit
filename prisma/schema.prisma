@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  name         String?
+  email        String    @unique
+  passwordHash String?
+  image        String?
+  provider     String    @default("credentials")
+  plan         String    @default("free") // free | pro
+  planSince    DateTime?
+  stripeCustomerId String?
+  createdAt    DateTime  @default(now())
+  audits       Audit[]
+}
+
+model Audit {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productName     String
+  productUrl      String
+  productType     String
+  growthStage     String
+  primaryGoal     String
+  accessMethod    String
+  // JSON-encoded, non-sensitive access details (login URL, notes, Loom link, Figma URL)
+  accessDetails   String    @default("{}")
+  // AES-256-GCM encrypted secrets (demo password, Figma token). Wiped after analysis.
+  encryptedSecret String?
+  secretsPurgedAt DateTime?
+  focusAreas      String    @default("[]")
+  status          String    @default("queued") // queued | processing | complete | failed
+  stage           Int       @default(0)
+  error           String?
+  engine          String?
+  growthScore     Int?
+  report          String?
+  shareToken      String?   @unique
+  createdAt       DateTime  @default(now())
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  assets          Asset[]
+  leads           Lead[]
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  auditId   String
+  audit     Audit    @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  kind      String   // screenshot | video | frame
+  label     String
+  source    String   // capture | upload | recording | figma
+  path      String
+  mimeType  String
+  width     Int?
+  height    Int?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id        String   @id @default(cuid())
+  auditId   String?
+  audit     Audit?   @relation(fields: [auditId], references: [id], onDelete: SetNull)
+  email     String
+  kind      String   // human_audit | strategy_call
+  message   String?
+  createdAt DateTime @default(now())
+}
