@@ -31,7 +31,7 @@ const AREA_STYLE: Record<string, string> = {
   hierarchy: "bg-medium/10 text-medium",
   cta: "bg-cta/10 text-cta",
   contrast: "bg-good/10 text-good",
-  typography: "bg-[#7a3cff]/10 text-[#7a3cff]",
+  typography: "bg-[#ff7a2e]/10 text-[#ff7a2e]",
   spacing: "bg-surface-2 text-muted",
   trust: "bg-high/10 text-high",
   layout: "bg-surface-2 text-muted",
@@ -103,14 +103,14 @@ const PROMISES = [
 
 function StartCard({ productName, onStart, starting, error }: { productName: string; onStart: () => void; starting: boolean; error: string | null }) {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-accent/25 bg-white p-6 sm:p-12 shadow-[0_10px_40px_rgb(91_69_255/0.10)]">
+    <div className="relative overflow-hidden rounded-3xl border border-accent/25 bg-white p-6 sm:p-12 shadow-[0_10px_40px_rgb(240_74_15/0.10)]">
       <div className="hero-glow pointer-events-none absolute inset-0" />
       <div className="relative grid lg:grid-cols-[1.1fr_1fr] gap-10 items-center">
         <div>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-accent"><Sparkle className="h-3.5 w-3.5" />One-click Redesign</span>
           <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.05]">See {productName} with every fix applied.</h2>
           <p className="mt-4 text-lg text-muted leading-relaxed">We rebuild your page with the report&apos;s changes: rewritten copy, a clear call to action and a new styleguide, then show you the before and after.</p>
-          <button onClick={onStart} disabled={starting} className="mt-7 inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-accent to-[#7a3cff] px-7 py-4 text-lg font-bold text-white shadow-[0_14px_30px_-10px_rgb(91_69_255/0.7)] transition-transform hover:-translate-y-0.5 disabled:opacity-60">
+          <button onClick={onStart} disabled={starting} className="mt-7 inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-accent to-[#ff7a2e] px-7 py-4 text-lg font-bold text-white shadow-[0_14px_30px_-10px_rgb(240_74_15/0.7)] transition-transform hover:-translate-y-0.5 disabled:opacity-60">
             <Sparkle className="h-5 w-5" />
             {starting ? "Starting your redesign" : "Redesign my page in one click"}
           </button>
@@ -304,7 +304,7 @@ function Result({ data, plan, mode, currentScore, findingTitles, onRegenerate, s
         <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-accent/40 blur-3xl" />
         <div className="relative grid lg:grid-cols-[1.5fr_1fr] gap-8 items-center">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#c9bfff]"><Sparkle className="h-3.5 w-3.5" />One-click Redesign</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-[#ffb48f]"><Sparkle className="h-3.5 w-3.5" />One-click Redesign</span>
             <h2 className="mt-4 text-2xl sm:text-4xl font-extrabold tracking-tight">Your page, with every fix applied.</h2>
             <p className="mt-3 text-white/75 leading-relaxed">{plan.summary}</p>
             <div className="mt-5 flex flex-wrap gap-2 text-sm">
@@ -317,7 +317,7 @@ function Result({ data, plan, mode, currentScore, findingTitles, onRegenerate, s
             <p className="text-sm text-white/60">Projected UX score</p>
             <div className="mt-2 flex items-end gap-3">
               <span className="text-3xl font-bold text-white/50 line-through decoration-2">{currentScore}</span>
-              <svg viewBox="0 0 24 24" className="mb-2 h-6 w-6 text-[#c9bfff]" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              <svg viewBox="0 0 24 24" className="mb-2 h-6 w-6 text-[#ffb48f]" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
               <span className="text-6xl font-extrabold tracking-tight text-[#6ee7b7]">{plan.projectedScore}</span>
             </div>
             {lift > 0 && <p className="mt-1 text-sm text-[#6ee7b7]">+{lift} points if these changes ship</p>}

@@ -229,7 +229,7 @@ export function ReportView({
       <Reveal className="mt-16 sm:mt-20 rounded-3xl bg-fg p-6 sm:p-12 text-white no-print">
         <div className="grid md:grid-cols-[1.4fr_1fr] gap-8 md:gap-10 items-center">
           <div>
-            <p className="text-sm font-semibold text-[#b9adff]">Go further</p>
+            <p className="text-sm font-semibold text-[#ffb48f]">Go further</p>
             <h2 className="mt-2 text-2xl sm:text-4xl font-extrabold tracking-tight">Turn this report into a growth roadmap.</h2>
             <p className="mt-3 text-white/70 leading-relaxed">A senior product strategist from Matan.Design reviews your product end to end, validates these findings against your data, and leads the first changes with your team.</p>
           </div>
@@ -250,7 +250,7 @@ export function ReportView({
 
 function RedesignBanner({ productName, ready, projected }: { productName: string; ready: boolean; projected?: number }) {
   return (
-    <a href="#redesign" className="group mb-6 flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl bg-gradient-to-r from-accent to-[#7a3cff] p-5 sm:p-6 text-white shadow-[0_14px_34px_-14px_rgb(91_69_255/0.8)] transition-transform hover:-translate-y-0.5 no-print">
+    <a href="#redesign" className="group mb-6 flex flex-col sm:flex-row sm:items-center gap-4 rounded-2xl bg-gradient-to-r from-accent to-[#ff7a2e] p-5 sm:p-6 text-white shadow-[0_14px_34px_-14px_rgb(240_74_15/0.8)] transition-transform hover:-translate-y-0.5 no-print">
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/15">
         <svg viewBox="0 0 24 24" className="h-6 w-6" fill="currentColor" aria-hidden><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9L12 2zm7 11l.9 2.6 2.6.9-2.6.9L19 20l-.9-2.6-2.6-.9 2.6-.9L19 13z" /></svg>
       </span>
