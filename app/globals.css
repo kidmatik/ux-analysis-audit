@@ -9,8 +9,8 @@
   --color-fg: #0e1325;
   --color-muted: #4d566e;
   --color-subtle: #8890a4;
-  --color-accent: #5b45ff;
-  --color-accent-strong: #4630ec;
+  --color-accent: #f04a0f;
+  --color-accent-strong: #c93a08;
   --color-cta: #ff5a1f;
   --color-cta-strong: #f04a0f;
   --color-critical: #f0384b;
@@ -68,12 +68,6 @@ body {
 
 @media print {
   .no-print { display: none !important; }
-}
-
-/* The landing page uses the brand orange as its accent instead of purple. */
-body:has(.theme-orange) {
-  --color-accent: #f04a0f;
-  --color-accent-strong: #c93a08;
 }
 
 .hero-glow {

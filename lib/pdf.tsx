@@ -11,11 +11,11 @@ const C = {
   text: "#1C1F24",
   muted: "#6B7280",
   line: "#E5E7EB",
-  accent: "#5B45FF",
+  accent: "#F04A0F",
   critical: "#F0384B",
   high: "#FF8A00",
   medium: "#2F7CFF",
-  dark: "#5B45FF",
+  dark: "#C93A08",
   good: "#12A150",
 };
 

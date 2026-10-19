@@ -71,7 +71,7 @@ export function ReportView({
       </div>
 
       {report.locked && mode === "owner" && (
-        <div className="fade-up mt-8 rounded-2xl bg-gradient-to-r from-accent to-[#7a3cff] p-5 sm:p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="fade-up mt-8 rounded-2xl bg-gradient-to-r from-accent to-[#ff7a2e] p-5 sm:p-6 text-white flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <p className="text-lg font-semibold">You are viewing your free teaser report</p>
             <p className="mt-1 text-white/80">

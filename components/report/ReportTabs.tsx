@@ -61,7 +61,7 @@ export function ReportTabs({ tabs, panels }: { tabs: TabDef[]; panels: Record<st
                 tabIndex={on ? 0 : -1}
                 onClick={() => select(t.id)}
                 className={`relative flex-1 min-w-max whitespace-nowrap rounded-xl px-4 sm:px-6 py-2.5 sm:py-3 text-[15px] transition-all duration-200 ${
-                  on ? "bg-white font-semibold text-fg ring-2 ring-accent shadow-[0_4px_14px_rgb(91_69_255/0.18)]" : "text-muted hover:bg-surface hover:text-fg"
+                  on ? "bg-white font-semibold text-fg ring-2 ring-accent shadow-[0_4px_14px_rgb(240_74_15/0.18)]" : "text-muted hover:bg-surface hover:text-fg"
                 }`}
               >
                 {t.label}

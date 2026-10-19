@@ -133,7 +133,7 @@ export function Statistics({ report }: { report: ViewReport }) {
                     key={c}
                     title={`${n} findings · impact ${5 - r}, ${efforts[c]} effort`}
                     className="flex h-12 items-center justify-center rounded-lg font-bold tabular-nums transition-transform hover:scale-[1.04]"
-                    style={{ background: n ? `rgb(91 69 255 / ${0.12 + (n / maxCell) * 0.7})` : "var(--color-surface)", color: n / maxCell > 0.55 ? "white" : "var(--color-fg)" }}
+                    style={{ background: n ? `rgb(240 74 15 / ${0.12 + (n / maxCell) * 0.7})` : "var(--color-surface)", color: n / maxCell > 0.55 ? "white" : "var(--color-fg)" }}
                   >
                     {n || ""}
                   </div>

@@ -149,7 +149,7 @@ export function Insights({
       <PanelTitle title="Insights" sub="Your next steps and the jobs to get done to raise the score. Check tasks off as you ship them." />
 
       {/* Path to 80 */}
-      <div className="rounded-3xl bg-gradient-to-br from-accent to-[#7a3cff] p-6 sm:p-9 text-white shadow-[0_20px_50px_rgb(91_69_255/0.25)]">
+      <div className="rounded-3xl bg-gradient-to-br from-accent to-[#ff7a2e] p-6 sm:p-9 text-white shadow-[0_20px_50px_rgb(240_74_15/0.25)]">
         <div className="grid md:grid-cols-[1fr_1.3fr] gap-8 items-center">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-white/70">Your path to 80+</p>

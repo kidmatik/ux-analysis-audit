@@ -13,7 +13,7 @@ import { HowItWorks } from "@/components/landing/HowItWorks";
 export default async function Landing() {
   const user = await currentUser();
   return (
-    <div className="theme-orange">
+    <div>
       <SiteHeader />
       <main>
         {/* Hero */}
