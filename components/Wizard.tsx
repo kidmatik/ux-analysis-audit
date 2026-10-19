@@ -211,7 +211,7 @@ export function Wizard({ figmaServerToken, initialUrl = "", initialMethod = "url
                       type="checkbox"
                       checked={on}
                       onChange={() => setFocus(on ? focus.filter((x) => x !== f.value) : [...focus, f.value])}
-                      className="h-4 w-4 accent-[#5b45ff]"
+                      className="h-4 w-4 accent-[#f04a0f]"
                     />
                     <span className="text-sm">{f.label}</span>
                   </label>
