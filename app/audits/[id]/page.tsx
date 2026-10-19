@@ -13,7 +13,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   return (
     <>
       <SiteHeader variant="app" />
-      <ReportView audit={data.audit} report={data.report} mode="owner" />
+      <ReportView audit={data.audit} report={data.report} redesign={data.redesign} mode="owner" />
     </>
   );
 }

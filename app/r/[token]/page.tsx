@@ -15,7 +15,7 @@ export default async function SharedReport({ params }: { params: Promise<{ token
   return (
     <>
       <SiteHeader />
-      <ReportView audit={data.audit} report={data.report} mode={token === SAMPLE_TOKEN ? "sample" : "shared"} shareToken={token} />
+      <ReportView audit={data.audit} report={data.report} redesign={data.redesign} mode={token === SAMPLE_TOKEN ? "sample" : "shared"} shareToken={token} />
     </>
   );
 }

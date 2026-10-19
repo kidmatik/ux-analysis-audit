@@ -23,7 +23,7 @@ export function captureAvailable() {
   return Boolean(chromiumPath());
 }
 
-async function launch(): Promise<Browser> {
+export async function launch(): Promise<Browser> {
   const { chromium } = await import("playwright-core");
   const executablePath = chromiumPath();
   if (!executablePath) throw new Error("No Chromium binary found. Set CHROMIUM_PATH to enable live capture.");
@@ -36,7 +36,7 @@ async function launch(): Promise<Browser> {
 }
 
 // Runs inside the page. Returns elements visible in the current viewport, as percentages.
-function collectInPage(): { elements: DetectedElement[]; signals: Omit<PageSignals, "url" | "loadMs"> } {
+export function collectInPage(): { elements: DetectedElement[]; signals: Omit<PageSignals, "url" | "loadMs"> } {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const out: DetectedElement[] = [];
@@ -119,7 +119,7 @@ async function shoot(page: Page, auditId: string, label: string, order: number, 
   return { assetId: asset.id, label, width: viewport.width, height: viewport.height, path: rel, mimeType: "image/png", elements, pageUrl: page.url() } satisfies Screen;
 }
 
-async function settle(page: Page) {
+export async function settle(page: Page) {
   await page.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {});
   // Dismiss common cookie banners so they do not dominate the capture.
   for (const text of ["Accept all", "Accept", "I agree", "Got it", "Allow all"]) {

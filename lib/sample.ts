@@ -1,4 +1,6 @@
 import { prisma } from "./prisma";
+import type { RedesignRecord } from "./redesign";
+import { SAMPLE_REDESIGN_CURRENT, SAMPLE_REDESIGN_HEIGHT, SAMPLE_REDESIGN_PINS, SAMPLE_REDESIGN_PLAN } from "./sample-redesign";
 import { finalizeReport, type Finding, type ReportCore } from "./report";
 import { visibilityScore, visibilitySubScores, visibilityTrack, type CrawledPage, type VisibilityCheck, type VisibilityReport } from "./visibility";
 
@@ -7,7 +9,7 @@ import { visibilityScore, visibilitySubScores, visibilityTrack, type CrawledPage
 
 export const SAMPLE_TOKEN = "sample";
 // Bump when the sample content changes so the stored sample report is regenerated.
-const SAMPLE_VERSION = 3;
+const SAMPLE_VERSION = 4;
 const SAMPLE_EMAIL = "sample@ux-analysis-audit.local";
 
 const SHOTS = [
@@ -237,6 +239,31 @@ const sampleReport = (assets: { id: string; label: string; width: number | null;
   sampleVersion: SAMPLE_VERSION,
 });
 
+// The sample's One-click Redesign, backed by the images in public/sample.
+async function sampleRedesign(auditId: string) {
+  await prisma.asset.deleteMany({ where: { auditId, kind: { in: ["redesign", "redesign_html"] } } });
+  const shot = (label: string, path: string) =>
+    prisma.asset.create({ data: { auditId, kind: "redesign", label, source: "redesign", path, mimeType: "image/png", width: 1440, height: SAMPLE_REDESIGN_HEIGHT } });
+  const before = await shot("Before redesign", "/sample/redesign-before.png");
+  const after = await shot("After redesign", "/sample/redesign-after.png");
+  const html = await prisma.asset.create({ data: { auditId, kind: "redesign_html", label: "Redesigned page", source: "redesign", path: "/sample/redesign.html", mimeType: "text/html" } });
+  const record: RedesignRecord = {
+    status: "complete",
+    stage: 5,
+    startedAt: "2026-10-01T09:05:00.000Z",
+    generatedAt: "2026-10-01T09:06:00.000Z",
+    engine: "claude",
+    plan: SAMPLE_REDESIGN_PLAN,
+    current: SAMPLE_REDESIGN_CURRENT,
+    before: { assetId: before.id, width: 1440, height: SAMPLE_REDESIGN_HEIGHT },
+    after: { assetId: after.id, width: 1440, height: SAMPLE_REDESIGN_HEIGHT },
+    htmlAssetId: html.id,
+    pins: SAMPLE_REDESIGN_PINS,
+    notes: [],
+  };
+  return JSON.stringify(record);
+}
+
 export async function ensureSample() {
   const existing = await prisma.audit.findUnique({ where: { shareToken: SAMPLE_TOKEN } });
   if (existing) {
@@ -245,7 +272,7 @@ export async function ensureSample() {
     // Older sample: rebuild the report in place, keeping its screenshots and share link.
     const assets = await prisma.asset.findMany({ where: { auditId: existing.id, kind: "screenshot" }, orderBy: { order: "asc" } });
     const report = sampleReport(assets);
-    return prisma.audit.update({ where: { id: existing.id }, data: { report: JSON.stringify(report), growthScore: report.growthScore } });
+    return prisma.audit.update({ where: { id: existing.id }, data: { report: JSON.stringify(report), growthScore: report.growthScore, redesign: await sampleRedesign(existing.id) } });
   }
   const user = await prisma.user.upsert({
     where: { email: SAMPLE_EMAIL },
@@ -276,6 +303,6 @@ export async function ensureSample() {
   const report = sampleReport(assets);
   return prisma.audit.update({
     where: { id: audit.id },
-    data: { status: "complete", stage: 5, report: JSON.stringify(report), growthScore: report.growthScore, engine: "sample", completedAt: new Date(), shareToken: SAMPLE_TOKEN, secretsPurgedAt: new Date() },
+    data: { status: "complete", stage: 5, report: JSON.stringify(report), growthScore: report.growthScore, redesign: await sampleRedesign(audit.id), engine: "sample", completedAt: new Date(), shareToken: SAMPLE_TOKEN, secretsPurgedAt: new Date() },
   });
 }
